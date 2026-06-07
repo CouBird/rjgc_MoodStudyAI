@@ -1,0 +1,4 @@
+pub const MAX_NICKNAME_LEN: usize = 20;
+pub const MAX_ROOM_CAPACITY: i32 = 50;
+pub const MIN_VALID_STUDY_MINUTES: i32 = 10;
+pub const HEARTBEAT_TIMEOUT_MINUTES: i64 = 10;

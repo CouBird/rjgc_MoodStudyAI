@@ -1,0 +1,45 @@
+# Local environment
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Rust build outputs
+target/
+target-*/
+backend/target/
+backend/target-*/
+
+# Runtime/generated files
+storage/
+backend/storage/
+*.log
+
+# Nested/local git metadata backup
+backend/.git-backup/
+
+# Original requirement assets and converted Word artifacts
+*.docx
+*.doc
+~$*
+/_extracted_docx/
+/1a1c38b81519077b828ca1e3f47bfab9.png
+/AI情绪治愈自习打卡空间(1).html
+
+# Keep only selected Markdown docs for submission
+*.md
+!/README.md
+!docs/
+!docs/05-restful-api.md
+!docs/10-home-room-stats-backend-audit.md
+!docs/11-team-collaboration-guide.md
+docs/original/
+docs/database/
+
+# Editor/system files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp

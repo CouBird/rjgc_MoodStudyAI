@@ -1,0 +1,5 @@
+[database]
+url = "mysql://root:password@127.0.0.1:3306/ai_study_room"
+
+[redis]
+url = "redis://127.0.0.1:6379"

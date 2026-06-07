@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>心流自习室 - 学习统计联调</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #1e293b;
+      --muted: #64748b;
+      --line: #e5e7eb;
+      --page: #f1f5f9;
+      --card: #ffffff;
+      --shadow: 0 8px 22px rgba(15, 23, 42, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 48%, #faf5ff 100%);
+      color: var(--dark);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+    }
+
+    .nav-inner {
+      max-width: 1272px;
+      height: 56px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 36px;
+      color: #4b5563;
+      font-size: 16px;
+    }
+
+    .nav-link {
+      color: inherit;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .user-area {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 2px solid var(--primary);
+      object-fit: cover;
+      background: #eef2ff;
+    }
+
+    .user-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .shell {
+      max-width: 1272px;
+      margin: 0 auto;
+      padding: 22px 20px 48px;
+    }
+
+    .login-panel {
+      margin-bottom: 18px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 150px 150px auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--dark);
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+    }
+
+    .btn {
+      min-height: 38px;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 16px;
+      color: #fff;
+      background: var(--primary);
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      color: #374151;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .page-title {
+      margin: 0 0 24px;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .page-view {
+      display: none;
+    }
+
+    .page-view.active {
+      display: block;
+    }
+
+    .home-hero {
+      min-height: 220px;
+      border-radius: 8px;
+      padding: 30px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 24px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.16));
+      box-shadow: var(--shadow);
+    }
+
+    .home-hero h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+
+    .home-hero p {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.7;
+    }
+
+    .home-hero-art {
+      min-height: 150px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(99, 102, 241, 0.92), rgba(139, 92, 246, 0.86)),
+        radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.28), transparent 35%);
+      font-size: 54px;
+      box-shadow: 0 16px 36px rgba(99, 102, 241, 0.18);
+    }
+
+    .home-actions,
+    .room-toolbar {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .room-card {
+      border-radius: 8px;
+      padding: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .room-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .room-card p {
+      min-height: 44px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .room-meta {
+      display: grid;
+      gap: 8px;
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .room-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .room-tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .room-tag.closed {
+      color: #64748b;
+      background: #e5e7eb;
+    }
+
+    .period-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .stats-tab {
+      border: 0;
+      border-radius: 999px;
+      padding: 9px 18px;
+      color: #374151;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .stats-tab:hover {
+      transform: translateY(-1px);
+    }
+
+    .stats-tab.active {
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .emotion-banner {
+      min-height: 102px;
+      border-radius: 8px;
+      padding: 26px 24px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .emotion-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.18));
+    }
+
+    .emotion-banner h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .emotion-banner p {
+      margin: 0;
+      color: #4b5563;
+      font-size: 14px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .metric-card {
+      min-height: 172px;
+      border-radius: 8px;
+      padding: 24px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .metric-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric-head span {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .round-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .primary-soft {
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .secondary-soft {
+      color: var(--secondary);
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .success-soft {
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .warning-soft {
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .metric-value {
+      margin: 0;
+      color: #1f2937;
+      font-size: 34px;
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .metric-value small {
+      margin-left: 6px;
+      color: #6b7280;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .metric-note {
+      margin: 12px 0 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .metric-note.good {
+      color: var(--success);
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .chart-card,
+    .calendar-card {
+      border-radius: 8px;
+      padding: 24px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-card h3,
+    .calendar-card h3 {
+      margin: 0 0 22px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .chart-box {
+      height: 280px;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .calendar-day {
+      min-height: 40px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #64748b;
+      background: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .calendar-day.checked {
+      color: #fff;
+      background: var(--success);
+    }
+
+    .calendar-day.today {
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .legend {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 26px;
+      color: #4b5563;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #e5e7eb;
+    }
+
+    .legend-swatch.checked {
+      background: var(--success);
+    }
+
+    .legend-swatch.today {
+      background: var(--primary);
+    }
+
+    .status {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 980px) {
+      .nav-inner {
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 12px 20px;
+      }
+
+      .nav-links,
+      .user-area {
+        justify-content: flex-start;
+      }
+
+      .login-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .metric-grid,
+      .chart-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .home-hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nav-links {
+        gap: 16px;
+        overflow-x: auto;
+      }
+
+      .login-panel,
+      .metric-grid,
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-card {
+        min-height: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="brand-icon">▣</div>
+        <span>心流自习室</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" href="rooms-demo.html#home">首页</a>
+        <a class="nav-link" href="rooms-demo.html#rooms">自习室</a>
+        <a class="nav-link active" href="stats-prototype-demo.html">学习统计</a>
+        <a class="nav-link" href="rooms-demo.html#profile">个人中心</a>
+      </div>
+      <div class="user-area">
+        <img id="avatar" class="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=stats" alt="用户头像" />
+        <span id="userName" class="user-name">未登录</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="shell">
+    <section class="login-panel">
+      <label>
+        API 地址
+        <input id="apiBase" value="http://127.0.0.1:8080/api/v1" />
+      </label>
+      <label>
+        手机号
+        <input id="phone" value="13800000001" />
+      </label>
+      <label>
+        密码
+        <input id="password" type="password" value="123456" />
+      </label>
+      <button id="loginBtn" class="btn" type="button">登录测试</button>
+      <button id="seedBtn" class="btn secondary" type="button">生成数据</button>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section id="statisticsPage">
+    <h1 class="page-title">学习统计</h1>
+
+    <div class="period-tabs">
+      <button class="stats-tab active" data-period="week" type="button">本周</button>
+      <button class="stats-tab" data-period="month" type="button">本月</button>
+      <button class="stats-tab" data-period="year" type="button">本年</button>
+    </div>
+
+    <section class="emotion-banner">
+      <div id="dominantEmotionEmoji" class="emotion-icon">😊</div>
+      <div>
+        <h2>主要情绪：<span id="dominantEmotionText" style="color: var(--primary)">平静</span></h2>
+        <p id="dominantEmotionDesc">这段时间内你常感到平静。</p>
+      </div>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>总学习时长</span>
+          <div class="round-icon primary-soft">◴</div>
+        </div>
+        <p class="metric-value"><span id="totalHours">0.0</span><small>小时</small></p>
+        <p id="totalNote" class="metric-note good">来自后端实时统计</p>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>日均学习</span>
+          <div class="round-icon secondary-soft">✓</div>
+        </div>
+        <p class="metric-value"><span id="averageHours">0.0</span><small>小时</small></p>
+        <p id="averageNote" class="metric-note good">按周期自然日平均</p>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>连续打卡</span>
+          <div class="round-icon success-soft">♨</div>
+        </div>
+        <p class="metric-value"><span id="streakDays">0</span><small>天</small></p>
+        <p class="metric-note">继续保持！</p>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>完成打卡</span>
+          <div class="round-icon warning-soft">●</div>
+        </div>
+        <p class="metric-value"><span id="checkinCount">0</span><small>次</small></p>
+        <p id="checkinNote" class="metric-note good">0 个学习日</p>
+      </article>
+    </section>
+
+    <section class="chart-grid">
+      <article class="chart-card">
+        <h3>学习时长趋势</h3>
+        <div class="chart-box">
+          <canvas id="studyChart"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <h3>情绪变化趋势</h3>
+        <div class="chart-box">
+          <canvas id="emotionChart"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="calendar-card">
+      <h3>学习打卡日历</h3>
+      <div id="calendarGrid" class="calendar-grid"></div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch checked"></span>已打卡</span>
+        <span class="legend-item"><span class="legend-swatch"></span>未打卡</span>
+        <span class="legend-item"><span class="legend-swatch today"></span>今天</span>
+      </div>
+    </section>
+    </section>
+
+  </main>
+
+  <script>
+    const state = {
+      token: localStorage.getItem('prototypeStatsToken') || '',
+      period: 'week',
+      user: null,
+    };
+
+    const emotionEmoji = {
+      平静: '😊',
+      自豪: '😎',
+      满足: '😌',
+      快乐: '😄',
+      焦虑: '😟',
+      疲惫: '😴',
+      难过: '😢',
+      自定义: '🙂',
+    };
+
+    const emotionLabels = ['平静', '自豪', '满足', '快乐', '焦虑', '疲惫', '难过', '自定义'];
+
+    function el(id) {
+      return document.getElementById(id);
+    }
+
+    function setStatus(message, type = '') {
+      el('status').textContent = message;
+      el('status').className = `status ${type}`;
+    }
+
+    function apiBase() {
+      return el('apiBase').value.replace(/\/+$/, '');
+    }
+
+    async function request(path, options = {}) {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      };
+
+      if (state.token) {
+        headers.Authorization = `Bearer ${state.token}`;
+      }
+
+      const response = await fetch(`${apiBase()}${path}`, {
+        ...options,
+        headers,
+      });
+      const payload = await response.json().catch(() => ({
+        message: response.statusText,
+      }));
+
+      if (!response.ok || (typeof payload.code === 'number' && payload.code !== 0)) {
+        throw new Error(payload.message || `HTTP ${response.status}`);
+      }
+
+      return payload.data;
+    }
+
+    function renderUser(user) {
+      el('userName').textContent = user?.nickname || '未登录';
+
+      if (user?.avatarUrl) {
+        el('avatar').src = user.avatarUrl;
+      }
+    }
+
+    async function login() {
+      try {
+        const data = await request('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            phone: el('phone').value.trim(),
+            password: el('password').value,
+          }),
+        });
+        state.token = data.token;
+        state.user = data.user;
+        localStorage.setItem('prototypeStatsToken', state.token);
+        renderUser(data.user);
+        setStatus('登录成功，统计数据已刷新。', 'ok');
+        await loadStats();
+        await loadCalendar();
+      } catch (error) {
+        setStatus(error.message, 'error');
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const today = localDateValue(new Date());
+        const data = await request(`/users/me/stats?period=${state.period}&date=${today}`);
+        renderStats(data);
+        setStatus(`当前周期：${data.startDate} 至 ${data.endDate}`, 'ok');
+      } catch (error) {
+        setStatus(error.message, 'error');
+      }
+    }
+
+    async function loadCalendar() {
+      try {
+        const month = localDateValue(new Date()).slice(0, 7);
+        const data = await request(`/checkins?month=${month}`);
+        renderCalendar(data.days || []);
+      } catch (error) {
+        renderCalendar([]);
+      }
+    }
+
+    async function createSampleData() {
+      try {
+        const suffix = String(Date.now()).slice(-6);
+        const closeAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+        const room = await request('/rooms', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: `原型统计测试${suffix}`,
+            description: 'prototype stats demo',
+            capacity: 3,
+            isPrivate: false,
+            password: null,
+            closeAt,
+          }),
+        });
+        const seats = await request(`/rooms/${room.roomId}/seats`);
+        const seat = seats.find((item) => item.status === 'available') || seats[0];
+        const session = await request('/study-sessions', {
+          method: 'POST',
+          body: JSON.stringify({
+            roomId: room.roomId,
+            seatId: seat.seatId,
+            mode: 'normal',
+            studyContent: '学习统计原型联调',
+          }),
+        });
+        const ended = await request(`/study-sessions/${session.sessionId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'ended',
+            studyContent: '学习统计原型联调结束',
+            endedAt: new Date(Date.now() + 12 * 60 * 1000).toISOString(),
+          }),
+        });
+        await request(`/study-sessions/${ended.sessionId}/emotion-records`, {
+          method: 'POST',
+          body: JSON.stringify({
+            emotionTag: '平静',
+            emotionScore: 7,
+            userNote: '原型统计联调情绪',
+          }),
+        });
+        setStatus(`已生成 ${ended.durationMinutes} 分钟有效学习记录。`, 'ok');
+        await loadStats();
+        await loadCalendar();
+      } catch (error) {
+        setStatus(error.message, 'error');
+      }
+    }
+
+    function renderStats(data) {
+      const mainEmotion = data.mainEmotion || '平静';
+      el('dominantEmotionText').textContent = mainEmotion;
+      el('dominantEmotionEmoji').textContent = emotionEmoji[mainEmotion] || '🙂';
+      el('dominantEmotionDesc').textContent = data.summary || `这段时间内你常感到${mainEmotion}。`;
+      el('totalHours').textContent = formatNumber(data.totalHours);
+      el('averageHours').textContent = formatNumber(data.averageDailyHours);
+      el('streakDays').textContent = data.streakDays || 0;
+      el('checkinCount').textContent = data.checkinCount || 0;
+      el('totalNote').textContent = `${data.totalMinutes || 0} 分钟，${data.validSessionCount || 0} 次有效会话`;
+      el('averageNote').textContent = `${data.averageDailyMinutes || 0} 分钟/天`;
+      el('checkinNote').textContent = `${data.studyDays || 0} 个学习日`;
+      drawStudyChart(data.studyTrend || []);
+      drawEmotionChart(data.emotionTrend || []);
+    }
+
+    function renderCalendar(days) {
+      const today = localDateValue(new Date());
+      const grid = el('calendarGrid');
+      grid.innerHTML = '';
+
+      if (!days.length) {
+        grid.innerHTML = '<div class="status">暂无日历数据</div>';
+        return;
+      }
+
+      for (const day of days) {
+        const node = document.createElement('div');
+        node.className = 'calendar-day';
+        if (day.checkedIn) node.classList.add('checked');
+        if (day.date === today) node.classList.add('today');
+        node.textContent = Number(day.date.slice(-2));
+        node.title = `${day.date} ${day.totalMinutes || 0} 分钟`;
+        grid.appendChild(node);
+      }
+    }
+
+    function drawStudyChart(points) {
+      const canvas = el('studyChart');
+      const ctx = resizeCanvas(canvas);
+      const values = points.map((item) => Number(item.hours) || 0);
+      const max = Math.max(1, ...values);
+      drawLineChart(ctx, {
+        points,
+        values,
+        max,
+        color: '#6366f1',
+        fill: 'rgba(99, 102, 241, 0.12)',
+        label: (item) => item.date.slice(5),
+        valueLabel: (value) => `${formatNumber(value)}h`,
+      });
+    }
+
+    function drawEmotionChart(points) {
+      const canvas = el('emotionChart');
+      const ctx = resizeCanvas(canvas);
+
+      if (!points.length) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('当前周期暂无情绪记录', 24, 40);
+        return;
+      }
+
+      drawLineChart(ctx, {
+        points,
+        values: points.map((item) => Number(item.emotionValue) || 0),
+        max: 7,
+        min: 0,
+        color: '#8b5cf6',
+        fill: 'rgba(139, 92, 246, 0.12)',
+        label: (item) => item.date.slice(5),
+        valueLabel: (value) => emotionLabels[Math.round(value)] || '自定义',
+        pointColor: (item) => emotionColor(item.emotionTag),
+      });
+    }
+
+    function drawLineChart(ctx, config) {
+      const { canvas } = ctx;
+      const width = canvas.width;
+      const height = canvas.height;
+      const pad = 42;
+      const top = 18;
+      const chartWidth = width - pad * 2;
+      const chartHeight = height - pad - top;
+      const min = config.min ?? 0;
+      const max = config.max;
+      const range = Math.max(1, max - min);
+      const coords = config.points.map((item, index) => {
+        const x = pad + (config.points.length <= 1 ? 0 : (index / (config.points.length - 1)) * chartWidth);
+        const normalized = (config.values[index] - min) / range;
+        const y = top + chartHeight - normalized * chartHeight;
+        return { item, x, y, value: config.values[index] };
+      });
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px sans-serif';
+
+      for (let i = 0; i <= 4; i += 1) {
+        const y = top + (i / 4) * chartHeight;
+        const value = max - (i / 4) * range;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(width - pad, y);
+        ctx.stroke();
+        ctx.fillText(config.valueLabel(value), 4, y + 4);
+      }
+
+      if (coords.length) {
+        ctx.beginPath();
+        coords.forEach((point, index) => {
+          if (index === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        });
+        ctx.lineTo(coords[coords.length - 1].x, height - pad);
+        ctx.lineTo(coords[0].x, height - pad);
+        ctx.closePath();
+        ctx.fillStyle = config.fill;
+        ctx.fill();
+
+        ctx.beginPath();
+        coords.forEach((point, index) => {
+          if (index === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = config.color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        coords.forEach((point) => {
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = config.pointColor ? config.pointColor(point.item) : config.color;
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+      }
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      const every = Math.max(1, Math.ceil(coords.length / 7));
+      coords.forEach((point, index) => {
+        if (index % every === 0 || index === coords.length - 1) {
+          ctx.textAlign = 'center';
+          ctx.fillText(config.label(point.item), point.x, height - 12);
+        }
+      });
+      ctx.textAlign = 'start';
+    }
+
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(320, Math.floor(rect.width));
+      canvas.height = Math.max(240, Math.floor(rect.height));
+      return canvas.getContext('2d');
+    }
+
+    function emotionColor(tag) {
+      return {
+        平静: '#6366f1',
+        自豪: '#10b981',
+        满足: '#0ea5e9',
+        快乐: '#f59e0b',
+        焦虑: '#ef4444',
+        疲惫: '#8b5cf6',
+        难过: '#64748b',
+        自定义: '#1e293b',
+      }[tag] || '#1e293b';
+    }
+
+    function localDateValue(date) {
+      const offset = date.getTimezoneOffset();
+      const local = new Date(date.getTime() - offset * 60 * 1000);
+      return local.toISOString().slice(0, 10);
+    }
+
+    function formatNumber(value) {
+      return Number(value || 0).toFixed(1);
+    }
+
+    function formatTime(value) {
+      if (!value) return '-';
+      return new Date(value).toLocaleString('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    document.querySelectorAll('.stats-tab').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.period = button.dataset.period;
+        document.querySelectorAll('.stats-tab').forEach((item) => {
+          item.classList.toggle('active', item === button);
+        });
+        loadStats();
+      });
+    });
+
+    el('loginBtn').addEventListener('click', login);
+    el('seedBtn').addEventListener('click', createSampleData);
+    window.addEventListener('resize', () => {
+      if (state.token) loadStats();
+    });
+
+    if (state.token) {
+      setStatus('已读取本地 token，正在刷新统计。', 'ok');
+      loadStats();
+      loadCalendar();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[server]
+host = "127.0.0.1"
+port = 8080
+
+[database]
+enabled = false
+max_connections = 5
+
+[redis]
+enabled = false
+
+[jwt]
+user_expire_hours = 24
+admin_expire_hours = 8
+
+[storage]
+avatar_dir = "storage/avatars"
+max_avatar_bytes = 3145728

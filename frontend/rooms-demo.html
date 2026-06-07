@@ -1,0 +1,2117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>心流自习室 - 自习室联调</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #a78bfa;
+      --calm: #f0f9ff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --panel: rgba(255, 255, 255, 0.82);
+      --shadow: 0 18px 45px rgba(99, 102, 241, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--dark);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(240, 249, 255, 0.95), transparent 34%),
+        radial-gradient(circle at 88% 18%, rgba(167, 139, 250, 0.26), transparent 28%),
+        linear-gradient(135deg, #f0f9ff 0%, #f8fafc 48%, #faf5ff 100%);
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.86);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .nav-inner {
+      max-width: 1180px;
+      height: 64px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.22);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav-link {
+      border: 0;
+      padding: 0;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 650;
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      color: var(--dark);
+      font-size: 14px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 2px solid var(--primary);
+      background: #eef2ff;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+
+    .login-panel {
+      max-width: 430px;
+      margin: 54px auto;
+      overflow: hidden;
+      background: white;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .login-head,
+    .modal-head {
+      padding: 28px 24px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .login-head h1,
+    .modal-head h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .login-head p,
+    .modal-head p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 14px;
+    }
+
+    .login-body,
+    .modal-body {
+      padding: 24px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 11px 12px;
+      background: white;
+      color: var(--dark);
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: white;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.18);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.94;
+    }
+
+    .btn.secondary {
+      color: #475569;
+      background: #e2e8f0;
+      box-shadow: none;
+    }
+
+    .btn.flat {
+      color: var(--primary);
+      background: white;
+      border: 1px solid rgba(99, 102, 241, 0.22);
+      box-shadow: none;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
+    .login-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .status {
+      min-height: 20px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .app-shell {
+      display: none;
+    }
+
+    .app-shell.active {
+      display: block;
+    }
+
+    .app-page {
+      display: none;
+    }
+
+    .app-page.active {
+      display: block;
+    }
+
+    .home-hero {
+      margin: 8px 0 30px;
+      border-radius: 16px;
+      padding: 34px 32px;
+      background: linear-gradient(135deg, #e8edff 0%, #f1e9ff 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .home-hero h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+
+    .home-hero p {
+      margin: 0;
+      color: #475569;
+      line-height: 1.7;
+    }
+
+    .home-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .home-stat {
+      min-width: 102px;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 18px rgba(99, 102, 241, 0.08);
+    }
+
+    .home-stat span {
+      display: block;
+      margin-bottom: 4px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .home-stat strong {
+      display: block;
+      color: var(--primary);
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .home-stat strong.warning {
+      color: var(--warning);
+    }
+
+    .hero-photo {
+      width: 100%;
+      aspect-ratio: 1.55;
+      border-radius: 8px;
+      object-fit: cover;
+      filter: grayscale(0.2);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-bottom: 30px;
+    }
+
+    .quick-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 24px;
+      background: white;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .quick-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .quick-card h3,
+    .recommend-panel h3 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .quick-card p {
+      margin: 0 0 20px;
+      color: #475569;
+      line-height: 1.7;
+    }
+
+    .round-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 0;
+      display: grid;
+      place-items: center;
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.12);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .recommend-panel {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 24px;
+      background: white;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .recommend-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .recommend-link {
+      border: 0;
+      color: var(--primary);
+      background: transparent;
+      font-weight: 700;
+    }
+
+    .recommend-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .recommend-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .recommend-item:hover {
+      border-color: rgba(99, 102, 241, 0.48);
+      transform: translateY(-2px);
+    }
+
+    .recommend-item h4 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .recommend-item p {
+      margin: 0 0 10px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .recommend-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .recommend-badge {
+      align-self: start;
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .stats-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+    }
+
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .mini-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 16px;
+      background: white;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .mini-card span {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .mini-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 22px;
+      color: var(--primary);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .calendar-day {
+      min-height: 42px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      display: grid;
+      place-items: center;
+      color: #64748b;
+      background: #f8fafc;
+      font-size: 12px;
+    }
+
+    .calendar-day.checked {
+      color: white;
+      background: var(--primary);
+      border-color: var(--primary);
+      font-weight: 800;
+    }
+
+    .simple-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .simple-row {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: #475569;
+      font-size: 14px;
+    }
+
+    .emotion-options {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .emotion-option {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .emotion-option.active {
+      color: var(--primary);
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 8px 0 22px;
+    }
+
+    .page-head h2 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .page-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .search {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 12px 14px 12px 38px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      outline: none;
+    }
+
+    .search span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .room-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .room-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(99, 102, 241, 0.5);
+      box-shadow: 0 18px 38px rgba(99, 102, 241, 0.14);
+    }
+
+    .room-card-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .room-card h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .room-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .tag.closed {
+      background: #e5e7eb;
+      color: #64748b;
+    }
+
+    .room-meta {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .room-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .owner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .owner img {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      object-fit: cover;
+      background: #eef2ff;
+    }
+
+    .detail-page {
+      display: none;
+    }
+
+    .detail-page.active {
+      display: block;
+    }
+
+    .back-link {
+      border: 0;
+      padding: 0;
+      margin: 0 0 14px;
+      color: #64748b;
+      background: transparent;
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .room-hero {
+      overflow: hidden;
+      border-radius: 16px;
+      background: white;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .room-hero-cover {
+      padding: 28px;
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(139, 92, 246, 0.92)),
+        linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.14));
+    }
+
+    .room-hero-cover h2 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+
+    .room-hero-cover p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.84);
+    }
+
+    .hero-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .hero-badge {
+      border-radius: 999px;
+      padding: 6px 12px;
+      color: white;
+      background: rgba(255, 255, 255, 0.18);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .detail-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 20px;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid currentColor;
+    }
+
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      gap: 10px;
+    }
+
+    .seat {
+      min-height: 52px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      position: relative;
+    }
+
+    .seat-available {
+      background-color: #d1fae5;
+      border-color: var(--success);
+      color: #047857;
+      cursor: pointer;
+    }
+
+    .seat-available:hover {
+      transform: scale(1.04);
+    }
+
+    .seat-occupied {
+      background-color: #fee2e2;
+      border-color: var(--danger);
+      color: #b91c1c;
+      cursor: not-allowed;
+    }
+
+    .seat-selected {
+      background-color: #c7d2fe;
+      border-color: var(--primary);
+      color: #3730a3;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+    }
+
+    .seat-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+
+    .member-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .member {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #edf2f7;
+      font-size: 14px;
+    }
+
+    .member img {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      object-fit: cover;
+    }
+
+    .start-panel {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .session-panel {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .session-box {
+      border: 1px solid rgba(99, 102, 241, 0.18);
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      display: grid;
+      gap: 8px;
+    }
+
+    .session-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .session-line strong {
+      color: var(--dark);
+      text-align: right;
+    }
+
+    .session-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.48);
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(460px, 100%);
+      overflow: hidden;
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.26);
+      animation: slideUp 0.22s ease-out;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .nav-links {
+        display: none;
+      }
+
+      .home-hero,
+      .quick-grid,
+      .stats-layout,
+      .stats-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .page-head,
+      .hero-row,
+      .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .detail-layout,
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-badges {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="brand-icon">书</div>
+        <div class="brand-title">心流自习室</div>
+      </div>
+      <div class="nav-links">
+        <button class="nav-link active" data-tab="home">首页</button>
+        <button class="nav-link" data-tab="rooms">自习室</button>
+        <button class="nav-link" data-tab="stats">学习统计</button>
+        <button class="nav-link" data-tab="profile">个人中心</button>
+      </div>
+      <div class="user-chip">
+        <img id="navAvatar" class="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=guest" alt="用户头像" />
+        <span id="navUser">未登录</span>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section id="loginPanel" class="login-panel">
+      <div class="login-head">
+        <h1>欢迎回来</h1>
+        <p>登录后进入自习室，查看房间与座位状态</p>
+      </div>
+      <div class="login-body">
+        <div class="field">
+          <label for="phone">手机号</label>
+          <input id="phone" value="13800000001" maxlength="11" />
+        </div>
+        <div class="field">
+          <label for="password">密码</label>
+          <input id="password" type="password" value="123456" />
+        </div>
+        <div class="login-actions">
+          <button id="loginBtn" class="btn">登录</button>
+          <button id="healthBtn" class="btn flat">检查后端连接</button>
+        </div>
+        <p id="loginStatus" class="status"></p>
+      </div>
+    </section>
+
+    <section id="appShell" class="app-shell">
+      <div id="homePage" class="app-page active">
+        <section class="home-hero">
+          <div>
+            <h1>你好，<span id="homeNickname">同学</span> 👋</h1>
+            <p>今天也要加油学习哦！保持良好的学习心态</p>
+            <div class="home-stats">
+              <div class="home-stat">
+                <span>今日学习</span>
+                <strong id="todayMinutes">0分钟</strong>
+              </div>
+              <div class="home-stat">
+                <span>连续打卡</span>
+                <strong id="streakDays">0天</strong>
+              </div>
+              <div class="home-stat">
+                <span>今日心情</span>
+                <strong id="latestEmotion" class="warning">暂无</strong>
+              </div>
+            </div>
+          </div>
+          <img class="hero-photo" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=640&q=80" alt="自习桌面" />
+        </section>
+
+        <section class="quick-grid">
+          <article class="quick-card">
+            <div class="quick-head">
+              <h3>快速开始</h3>
+              <span class="round-icon">▶</span>
+            </div>
+            <p>立即进入自习室开始学习，专注当下，提升效率</p>
+            <button id="goRoomsBtn" class="btn" style="width: 100%;">进入自习室</button>
+          </article>
+
+          <article class="quick-card">
+            <div class="quick-head">
+              <h3>创建房间</h3>
+              <span class="round-icon">+</span>
+            </div>
+            <p>创建自己的专属自习室，邀请好友一起学习</p>
+            <button id="homeCreateRoomBtn" class="btn" style="width: 100%;">创建自习室</button>
+          </article>
+        </section>
+
+        <section class="recommend-panel">
+          <div class="recommend-head">
+            <h3>推荐自习室</h3>
+            <button id="viewAllRoomsBtn" class="recommend-link">查看全部</button>
+          </div>
+          <div id="recommendedRooms" class="recommend-list"></div>
+        </section>
+      </div>
+
+      <div id="statsPage" class="app-page">
+        <div class="page-head">
+          <div>
+            <h2>学习统计</h2>
+            <p>查看打卡、学习时长和情绪趋势，验证阶段 7 后端接口。</p>
+          </div>
+          <button id="refreshStatsBtn" class="btn flat">刷新统计</button>
+        </div>
+
+        <div class="stats-cards">
+          <div class="mini-card">
+            <span>阶段学习</span>
+            <strong id="statsTotalMinutes">0分钟</strong>
+          </div>
+          <div class="mini-card">
+            <span>有效会话</span>
+            <strong id="statsValidSessions">0次</strong>
+          </div>
+          <div class="mini-card">
+            <span>打卡次数</span>
+            <strong id="statsCheckins">0天</strong>
+          </div>
+        </div>
+
+        <div class="stats-layout">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>打卡日历</h3>
+              <button id="openMakeupBtn" class="btn flat">补卡</button>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </section>
+
+          <section class="panel">
+            <h3>情绪趋势</h3>
+            <div id="emotionTrendList" class="simple-list"></div>
+          </section>
+        </div>
+      </div>
+
+      <div id="roomListPage" class="app-page">
+        <div class="page-head">
+          <div>
+            <h2>自习室</h2>
+            <p>选择一个开放中的房间，查看座位与在线成员。</p>
+          </div>
+          <button id="openCreateModalBtn" class="btn">创建自习室</button>
+        </div>
+
+        <div class="toolbar">
+          <div class="search">
+            <span>⌕</span>
+            <input id="keyword" placeholder="搜索自习室名称" />
+          </div>
+          <button id="refreshBtn" class="btn flat">刷新列表</button>
+        </div>
+
+        <div id="rooms" class="rooms-grid"></div>
+      </div>
+
+      <div id="roomDetailPage" class="detail-page">
+        <button id="backToRoomsBtn" class="back-link">← 返回自习室列表</button>
+
+        <div class="room-hero">
+          <div class="room-hero-cover">
+            <div class="hero-row">
+              <div>
+                <h2 id="detailTitle">房间详情</h2>
+                <p id="detailDesc">选择一个房间查看详情</p>
+              </div>
+              <div class="hero-badges">
+                <span id="detailMembers" class="hero-badge">0/0人</span>
+                <span id="detailStatus" class="hero-badge">开放中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-layout">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>选择座位</h3>
+              <div class="panel-actions">
+                <div class="legend">
+                  <span class="legend-item"><span class="legend-swatch seat-available"></span>可选择</span>
+                  <span class="legend-item"><span class="legend-swatch seat-occupied"></span>已占用</span>
+                  <span class="legend-item"><span class="legend-swatch seat-selected"></span>已选择</span>
+                </div>
+                <button id="refreshSeatsBtn" class="btn flat">刷新座位</button>
+              </div>
+            </div>
+            <div id="seats" class="seat-grid"></div>
+            <div class="start-panel">
+              <button id="startStudyBtn" class="btn" disabled>开始学习</button>
+              <p id="selectedSeatText" class="status">请先选择可用座位。</p>
+            </div>
+          </section>
+
+          <aside class="panel">
+            <h3>成员列表</h3>
+            <div id="members" class="member-list"></div>
+
+            <div class="session-panel">
+              <h3>当前学习</h3>
+              <div id="sessionBox" class="session-box">
+                <div class="session-line">
+                  <span>状态</span>
+                  <strong id="sessionStatus">暂无会话</strong>
+                </div>
+                <div class="session-line">
+                  <span>座位</span>
+                  <strong id="sessionSeat">-</strong>
+                </div>
+                <div class="session-line">
+                  <span>模式</span>
+                  <strong id="sessionMode">-</strong>
+                </div>
+                <div class="session-line">
+                  <span>开始时间</span>
+                  <strong id="sessionStart">-</strong>
+                </div>
+                <div class="session-actions">
+                  <button id="heartbeatBtn" class="btn flat" disabled>心跳</button>
+                  <button id="breakBtn" class="btn flat" disabled>休息</button>
+                  <button id="extendBreakBtn" class="btn flat" disabled>延长休息</button>
+                  <button id="resumeBtn" class="btn flat" disabled>恢复</button>
+                </div>
+                <button id="endStudyBtn" class="btn secondary" disabled>结束学习</button>
+                <p id="sessionStatusText" class="status">选择座位后开始学习。</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="createModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>创建自习室</h2>
+        <p>房间创建后会自动生成座位</p>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="roomName">房间名称</label>
+          <input id="roomName" maxlength="20" placeholder="请输入房间名称" />
+        </div>
+        <div class="field">
+          <label for="capacity">房间容量（1-50人）</label>
+          <input id="capacity" type="number" min="1" max="50" value="20" />
+        </div>
+        <div class="field">
+          <label for="roomDesc">房间描述</label>
+          <textarea id="roomDesc" maxlength="255" placeholder="介绍一下你的自习室...">一起专注学习，互相陪伴。</textarea>
+        </div>
+        <div class="field">
+          <label for="roomEndTime">开放截止时间</label>
+          <input id="roomEndTime" type="datetime-local" />
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="isPrivate">房间类型</label>
+            <select id="isPrivate">
+              <option value="false">开放</option>
+              <option value="true">私密</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="roomPassword">房间密码</label>
+            <input id="roomPassword" placeholder="私密房间填写" />
+          </div>
+        </div>
+        <p id="createStatus" class="status"></p>
+        <div class="modal-actions">
+          <button id="cancelCreateBtn" class="btn secondary">取消</button>
+          <button id="createBtn" class="btn">创建</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="emotionModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>情绪打卡</h2>
+        <p>记录一次学习后的心情，生成温和反馈</p>
+      </div>
+      <div class="modal-body">
+        <div id="emotionOptions" class="emotion-options"></div>
+        <div class="field">
+          <label for="emotionScore">情绪评分（1-10）</label>
+          <input id="emotionScore" type="number" min="1" max="10" value="6" />
+        </div>
+        <div class="field">
+          <label for="emotionNote">心情自述</label>
+          <textarea id="emotionNote" maxlength="1000" placeholder="简单记录一下此刻的状态"></textarea>
+        </div>
+        <p id="emotionStatus" class="status"></p>
+        <div class="modal-actions">
+          <button id="cancelEmotionBtn" class="btn secondary">取消</button>
+          <button id="submitEmotionBtn" class="btn">提交情绪</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="makeupModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>补卡</h2>
+        <p>只能补 7 日内且未打卡的日期</p>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="makeupDate">补卡日期</label>
+          <input id="makeupDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="makeupMinutes">学习分钟数</label>
+          <input id="makeupMinutes" type="number" min="1" value="60" />
+        </div>
+        <div class="field">
+          <label for="makeupReason">补卡原因</label>
+          <textarea id="makeupReason" maxlength="255" placeholder="例如：忘记提交"></textarea>
+        </div>
+        <p id="makeupStatus" class="status"></p>
+        <div class="modal-actions">
+          <button id="cancelMakeupBtn" class="btn secondary">取消</button>
+          <button id="submitMakeupBtn" class="btn">提交补卡</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:8080/api/v1';
+    let token = localStorage.getItem('study_room_token') || '';
+    let selectedSeatId = null;
+    let currentRoomId = null;
+    let activeSession = null;
+    let currentBreakId = null;
+    let currentUser = null;
+    let lastEndedSessionId = null;
+    let selectedEmotionTag = '平静';
+
+    const el = (id) => document.getElementById(id);
+
+    function setStatus(id, message, type = '') {
+      el(id).textContent = message;
+      el(id).className = `status ${type}`;
+    }
+
+    function initialTabFromHash() {
+      const tab = window.location.hash.replace('#', '');
+      return ['home', 'rooms'].includes(tab) ? tab : 'home';
+    }
+
+    async function request(path, options = {}) {
+      const headers = {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      };
+
+      const response = await fetch(`${API}${path}`, { ...options, headers });
+      const text = await response.text();
+      let payload = {};
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch (error) {
+        payload = { message: text || `HTTP ${response.status}` };
+      }
+      if (!response.ok) {
+        throw new Error(payload.message || `HTTP ${response.status}`);
+      }
+      return payload.data;
+    }
+
+    async function checkHealth() {
+      try {
+        const response = await fetch('http://127.0.0.1:8080/health');
+        const payload = await response.json();
+        setStatus('loginStatus', `后端 ${payload.data.status}，数据库 ${payload.data.database}`, 'ok');
+      } catch (error) {
+        setStatus('loginStatus', '后端未启动，请先在 backend 目录运行 cargo run。', 'error');
+      }
+    }
+
+    async function login() {
+      try {
+        const data = await request('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            phone: el('phone').value.trim(),
+            password: el('password').value,
+          }),
+        });
+        token = data.token;
+        currentUser = data.user;
+        localStorage.setItem('study_room_token', token);
+        el('navUser').textContent = data.user.nickname;
+        el('navAvatar').src = data.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.user.nickname)}`;
+        el('loginPanel').style.display = 'none';
+        el('appShell').classList.add('active');
+        setActiveTab(initialTabFromHash());
+        renderHomeUser();
+        await loadActiveSession();
+      } catch (error) {
+        setStatus('loginStatus', error.message, 'error');
+      }
+    }
+
+    async function loadCurrentUser() {
+      try {
+        currentUser = await request('/users/me');
+        el('navUser').textContent = currentUser.nickname;
+        el('navAvatar').src = currentUser.avatarUrl || avatarUrl(currentUser.nickname);
+        renderHomeUser();
+      } catch (error) {
+        currentUser = null;
+      }
+    }
+
+    async function loadHomeData() {
+      await Promise.all([loadTodayStats(), loadRecommendedRooms()]);
+    }
+
+    async function loadTodayStats() {
+      try {
+        const data = await request('/users/me/stats/today');
+        el('todayMinutes').textContent = formatMinutes(data.todayMinutes || 0);
+        el('streakDays').textContent = `${data.streakDays || 0}天`;
+        el('latestEmotion').textContent = data.latestEmotion || (data.todayCheckin ? '已打卡' : '暂无');
+      } catch (error) {
+        el('todayMinutes').textContent = '加载失败';
+        el('streakDays').textContent = '-';
+        el('latestEmotion').textContent = '-';
+      }
+    }
+
+    async function loadRecommendedRooms() {
+      try {
+        const data = await request('/rooms?page=1&pageSize=3&status=open');
+        renderRecommendedRooms(data.items || []);
+      } catch (error) {
+        el('recommendedRooms').innerHTML = `<p class="status error">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderHomeUser() {
+      el('homeNickname').textContent = currentUser?.nickname || '同学';
+    }
+
+    function renderRecommendedRooms(rooms) {
+      const container = el('recommendedRooms');
+      container.innerHTML = '';
+
+      if (!rooms.length) {
+        container.innerHTML = '<p class="status">暂无开放中的自习室</p>';
+        return;
+      }
+
+      for (const room of rooms) {
+        const item = document.createElement('article');
+        item.className = 'recommend-item';
+        item.innerHTML = `
+          <div>
+            <h4>${escapeHtml(room.name)}</h4>
+            <p>${escapeHtml(room.description || '静心学习，快乐成长')}</p>
+            <div class="recommend-meta">
+              <span>👥 ${room.currentMembers}/${room.capacity}人</span>
+              <span>◷ ${room.status === 'open' ? '开放中' : '已关闭'}</span>
+              <span>房主：${escapeHtml(room.creator.nickname)}</span>
+            </div>
+          </div>
+          <span class="recommend-badge">${room.currentMembers > 0 ? '热门' : '推荐'}</span>
+        `;
+        item.addEventListener('click', () => loadRoomDetail(room.roomId));
+        container.appendChild(item);
+      }
+    }
+
+    async function loadStatsPage() {
+      await Promise.all([loadUserStats(), loadCheckinCalendar(), loadEmotionTrends()]);
+    }
+
+    async function loadUserStats() {
+      try {
+        const data = await request('/users/me/stats?period=week');
+        el('statsTotalMinutes').textContent = formatMinutes(data.totalMinutes || 0);
+        el('statsValidSessions').textContent = `${data.validSessionCount || 0}次`;
+        el('statsCheckins').textContent = `${data.checkinCount || 0}天`;
+      } catch (error) {
+        el('statsTotalMinutes').textContent = '失败';
+      }
+    }
+
+    async function loadCheckinCalendar() {
+      try {
+        const month = new Date().toISOString().slice(0, 7);
+        const data = await request(`/checkins?month=${month}`);
+        const grid = el('calendarGrid');
+        grid.innerHTML = '';
+        for (const day of data.days || []) {
+          const node = document.createElement('div');
+          node.className = `calendar-day ${day.checkedIn ? 'checked' : ''}`;
+          node.title = day.checkedIn ? `${day.totalMinutes} 分钟${day.isMakeup ? '，补卡' : ''}` : '未打卡';
+          node.textContent = new Date(day.date).getDate();
+          grid.appendChild(node);
+        }
+      } catch (error) {
+        el('calendarGrid').innerHTML = `<p class="status error">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    async function loadEmotionTrends() {
+      try {
+        const data = await request('/users/me/emotion-trends?period=week');
+        const list = el('emotionTrendList');
+        list.innerHTML = '';
+        if (!data.trends?.length) {
+          list.innerHTML = '<p class="status">暂无情绪记录</p>';
+          return;
+        }
+        for (const point of data.trends) {
+          const row = document.createElement('div');
+          row.className = 'simple-row';
+          row.innerHTML = `<span>${escapeHtml(point.date)} · ${escapeHtml(point.dominantEmotion)}</span><strong>${point.averageScore}分 / ${point.count}次</strong>`;
+          list.appendChild(row);
+        }
+      } catch (error) {
+        el('emotionTrendList').innerHTML = `<p class="status error">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    async function loadRooms() {
+      try {
+        const keyword = encodeURIComponent(el('keyword').value.trim());
+        const data = await request(`/rooms?page=1&pageSize=50${keyword ? `&keyword=${keyword}` : ''}`);
+        renderRooms(data.items || []);
+      } catch (error) {
+        renderEmpty(`加载失败：${error.message}`);
+      }
+    }
+
+    function renderRooms(rooms) {
+      const container = el('rooms');
+      container.innerHTML = '';
+
+      if (!rooms.length) {
+        renderEmpty('暂无自习室');
+        return;
+      }
+
+      for (const room of rooms) {
+        const card = document.createElement('article');
+        card.className = 'room-card';
+        card.innerHTML = `
+          <div class="room-card-title">
+            <div>
+              <h3>${escapeHtml(room.name)}</h3>
+              <p>${escapeHtml(room.description || '这个房间还没有描述。')}</p>
+            </div>
+            <span class="tag ${room.status === 'closed' ? 'closed' : ''}">${room.status === 'open' ? '开放中' : '已关闭'}</span>
+          </div>
+          <div class="room-meta">
+            <div class="room-meta-row">
+              <span>人数</span>
+              <strong>${room.currentMembers}/${room.capacity}</strong>
+            </div>
+            <div class="room-meta-row">
+              <span>开放截止</span>
+              <strong>${formatTime(room.closeAt)}</strong>
+            </div>
+            <div class="owner">
+              <img src="${room.creator.avatarUrl || avatarUrl(room.creator.nickname)}" alt="房主头像" />
+              <span>房主：${escapeHtml(room.creator.nickname)}</span>
+            </div>
+          </div>
+        `;
+        card.addEventListener('click', () => loadRoomDetail(room.roomId));
+        container.appendChild(card);
+      }
+    }
+
+    function renderEmpty(message) {
+      el('rooms').innerHTML = `<p class="status">${escapeHtml(message)}</p>`;
+    }
+
+    async function createRoom() {
+      try {
+        const localValue = el('roomEndTime').value;
+        const closeAt = localValue ? new Date(localValue).toISOString() : new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+        const data = await request('/rooms', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: el('roomName').value.trim(),
+            description: el('roomDesc').value.trim(),
+            capacity: Number(el('capacity').value),
+            isPrivate: el('isPrivate').value === 'true',
+            password: el('roomPassword').value.trim() || null,
+            closeAt,
+          }),
+        });
+        setStatus('createStatus', '创建成功', 'ok');
+        closeCreateModal();
+        await loadHomeData();
+        await loadRooms();
+        await loadRoomDetail(data.roomId);
+      } catch (error) {
+        setStatus('createStatus', error.message, 'error');
+      }
+    }
+
+    async function loadRoomDetail(roomId) {
+      try {
+        const data = await request(`/rooms/${roomId}`);
+        const room = data.room;
+        selectedSeatId = null;
+        currentRoomId = roomId;
+
+        document.querySelectorAll('.nav-link').forEach((button) => {
+          button.classList.toggle('active', button.dataset.tab === 'rooms');
+        });
+        el('homePage').classList.remove('active');
+        el('roomListPage').classList.add('active');
+        el('roomListPage').style.display = 'none';
+        el('roomDetailPage').classList.add('active');
+        el('detailTitle').textContent = room.name;
+        el('detailDesc').textContent = room.description || '静心学习，专注当下。';
+        el('detailMembers').textContent = `${room.currentMembers}/${room.capacity}人`;
+        el('detailStatus').textContent = room.status === 'open' ? '开放中' : '已关闭';
+        el('selectedSeatText').textContent = '请先选择可用座位。';
+        el('startStudyBtn').disabled = true;
+
+        renderSeats(data.seats || []);
+        renderMembers(data.members || []);
+        renderSession();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function refreshSeats(options = {}) {
+      if (!currentRoomId) return;
+      try {
+        const seats = await request(`/rooms/${currentRoomId}/seats`);
+        selectedSeatId = null;
+        if (!options.silent) {
+          el('selectedSeatText').textContent = '座位状态已刷新，请重新选择可用座位。';
+        }
+        el('startStudyBtn').disabled = true;
+        renderSeats(seats || []);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    function renderSeats(seats) {
+      const grid = el('seats');
+      grid.innerHTML = '';
+
+      for (const seat of seats) {
+        const node = document.createElement('div');
+        const occupied = seat.status === 'occupied';
+        node.className = `seat ${occupied ? 'seat-occupied' : 'seat-available'}`;
+        node.dataset.seatId = seat.seatId;
+        node.title = occupied && seat.occupiedBy ? seat.occupiedBy.nickname : '可选择';
+        node.innerHTML = occupied && seat.occupiedBy
+          ? `<img class="seat-avatar" src="${seat.occupiedBy.avatarUrl || avatarUrl(seat.occupiedBy.nickname)}" alt="成员头像" />`
+          : escapeHtml(seat.seatCode);
+
+        if (!occupied) {
+          node.addEventListener('click', () => selectSeat(node, seat));
+        }
+        grid.appendChild(node);
+      }
+    }
+
+    function selectSeat(node, seat) {
+      document.querySelectorAll('.seat-selected').forEach((selected) => {
+        selected.classList.remove('seat-selected');
+        selected.classList.add('seat-available');
+      });
+      node.classList.remove('seat-available');
+      node.classList.add('seat-selected');
+      selectedSeatId = seat.seatId;
+      el('selectedSeatText').textContent = `已选择座位 ${seat.seatCode}`;
+      el('startStudyBtn').disabled = Boolean(activeSession);
+    }
+
+    async function loadActiveSession() {
+      try {
+        activeSession = await request('/study-sessions/active');
+        renderSession();
+      } catch (error) {
+        activeSession = null;
+        renderSession();
+      }
+    }
+
+    async function startStudy() {
+      if (!currentRoomId || !selectedSeatId) return;
+      try {
+        activeSession = await request('/study-sessions', {
+          method: 'POST',
+          body: JSON.stringify({
+            roomId: currentRoomId,
+            seatId: selectedSeatId,
+            mode: 'normal',
+            studyContent: '前端联调学习',
+          }),
+        });
+        currentBreakId = null;
+        selectedSeatId = null;
+        setStatus('selectedSeatText', `已开始学习，座位 ${activeSession.seatCode} 已占用。`, 'ok');
+        renderSession();
+        await refreshSeats({ silent: true });
+      } catch (error) {
+        setStatus('selectedSeatText', error.message, 'error');
+        await refreshSeats();
+      }
+    }
+
+    async function sendHeartbeat() {
+      if (!activeSession) return;
+      try {
+        activeSession = await request(`/study-sessions/${activeSession.sessionId}/heartbeats`, {
+          method: 'POST',
+          body: JSON.stringify({ clientTime: new Date().toISOString() }),
+        });
+        setStatus('sessionStatusText', `心跳成功：${formatTime(activeSession.lastHeartbeatAt)}`, 'ok');
+        renderSession();
+      } catch (error) {
+        setStatus('sessionStatusText', error.message, 'error');
+      }
+    }
+
+    async function takeBreak() {
+      if (!activeSession) return;
+      try {
+        const studyBreak = await request(`/study-sessions/${activeSession.sessionId}/breaks`, {
+          method: 'POST',
+          body: JSON.stringify({ durationMinutes: 5 }),
+        });
+        currentBreakId = studyBreak.breakId;
+        activeSession = await request('/study-sessions/active');
+        setStatus('sessionStatusText', `已进入休息，计划 ${studyBreak.durationMinutes} 分钟。`, 'ok');
+        renderSession();
+      } catch (error) {
+        setStatus('sessionStatusText', error.message, 'error');
+      }
+    }
+
+    async function extendBreak() {
+      if (!currentBreakId) return;
+      try {
+        const studyBreak = await request(`/study-breaks/${currentBreakId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ extendMinutes: 5 }),
+        });
+        setStatus('sessionStatusText', `休息已延长到 ${studyBreak.durationMinutes} 分钟。`, 'ok');
+      } catch (error) {
+        setStatus('sessionStatusText', error.message, 'error');
+      }
+    }
+
+    async function resumeStudy() {
+      if (!activeSession) return;
+      try {
+        activeSession = await request(`/study-sessions/${activeSession.sessionId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'studying', studyContent: '休息后继续学习' }),
+        });
+        currentBreakId = null;
+        setStatus('sessionStatusText', '已恢复学习。', 'ok');
+        renderSession();
+      } catch (error) {
+        setStatus('sessionStatusText', error.message, 'error');
+      }
+    }
+
+    async function endStudy() {
+      if (!activeSession) return;
+      try {
+        activeSession = await request(`/study-sessions/${activeSession.sessionId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'ended', studyContent: '前端联调结束' }),
+        });
+        const message = activeSession.isValid
+          ? `已结束学习，有效学习 ${activeSession.durationMinutes} 分钟。`
+          : `已结束学习，本次 ${activeSession.durationMinutes} 分钟，不计入有效打卡。`;
+        lastEndedSessionId = activeSession.sessionId;
+        setStatus('sessionStatusText', message, activeSession.isValid ? 'ok' : '');
+        activeSession = null;
+        currentBreakId = null;
+        renderSession({ preserveMessage: true });
+        await refreshSeats({ silent: true });
+        await loadRooms();
+        await loadHomeData();
+        openEmotionModal();
+      } catch (error) {
+        setStatus('sessionStatusText', error.message, 'error');
+      }
+    }
+
+    function openEmotionModal() {
+      if (!lastEndedSessionId) return;
+      renderEmotionOptions();
+      setStatus('emotionStatus', '', '');
+      el('emotionModal').classList.add('active');
+    }
+
+    function closeEmotionModal() {
+      el('emotionModal').classList.remove('active');
+    }
+
+    function renderEmotionOptions() {
+      const options = ['平静', '自豪', '满足', '快乐', '疲惫', '焦虑', '难过', '自定义'];
+      const container = el('emotionOptions');
+      container.innerHTML = '';
+      for (const option of options) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `emotion-option ${option === selectedEmotionTag ? 'active' : ''}`;
+        button.textContent = option;
+        button.addEventListener('click', () => {
+          selectedEmotionTag = option;
+          renderEmotionOptions();
+        });
+        container.appendChild(button);
+      }
+    }
+
+    async function submitEmotion() {
+      if (!lastEndedSessionId) return;
+      try {
+        const data = await request(`/study-sessions/${lastEndedSessionId}/emotion-records`, {
+          method: 'POST',
+          body: JSON.stringify({
+            emotionTag: selectedEmotionTag,
+            emotionScore: Number(el('emotionScore').value),
+            userNote: el('emotionNote').value.trim() || null,
+          }),
+        });
+        setStatus('emotionStatus', data.aiFeedback, 'ok');
+        await loadHomeData();
+        await loadStatsPage();
+      } catch (error) {
+        setStatus('emotionStatus', error.message, 'error');
+      }
+    }
+
+    function openMakeupModal() {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      el('makeupDate').value = localDateValue(yesterday);
+      setStatus('makeupStatus', '', '');
+      el('makeupModal').classList.add('active');
+    }
+
+    function closeMakeupModal() {
+      el('makeupModal').classList.remove('active');
+    }
+
+    async function submitMakeup() {
+      try {
+        const data = await request('/checkins', {
+          method: 'POST',
+          body: JSON.stringify({
+            date: el('makeupDate').value,
+            totalMinutes: Number(el('makeupMinutes').value),
+            makeupReason: el('makeupReason').value.trim() || null,
+            summaryNote: '前端联调补卡',
+          }),
+        });
+        setStatus('makeupStatus', `补卡成功：${data.date}，${data.totalMinutes} 分钟`, 'ok');
+        await loadHomeData();
+        await loadStatsPage();
+      } catch (error) {
+        setStatus('makeupStatus', error.message, 'error');
+      }
+    }
+
+    function renderSession(options = {}) {
+      const session = activeSession;
+      const isStudying = session?.status === 'studying';
+      const isResting = session?.status === 'resting';
+      const isPaused = session?.status === 'paused';
+
+      el('sessionStatus').textContent = session ? statusText(session.status) : '暂无会话';
+      el('sessionSeat').textContent = session ? session.seatCode : '-';
+      el('sessionMode').textContent = session ? modeText(session.mode) : '-';
+      el('sessionStart').textContent = session ? formatTime(session.startTime) : '-';
+      el('heartbeatBtn').disabled = !session || session.status === 'ended';
+      el('breakBtn').disabled = !isStudying;
+      el('extendBreakBtn').disabled = !isResting || !currentBreakId;
+      el('resumeBtn').disabled = !(isResting || isPaused);
+      el('endStudyBtn').disabled = !session || session.status === 'ended';
+      el('startStudyBtn').disabled = !selectedSeatId || Boolean(session);
+
+      if (!session && !options.preserveMessage) {
+        el('sessionStatusText').textContent = '选择座位后开始学习。';
+        el('sessionStatusText').className = 'status';
+      }
+    }
+
+    function renderMembers(members) {
+      const list = el('members');
+      list.innerHTML = '';
+
+      if (!members.length) {
+        list.innerHTML = '<p class="status">暂无在线成员</p>';
+        return;
+      }
+
+      for (const member of members) {
+        const item = document.createElement('div');
+        item.className = 'member';
+        item.innerHTML = `
+          <img src="${member.avatarUrl || avatarUrl(member.nickname)}" alt="成员头像" />
+          <span>${escapeHtml(member.nickname)}</span>
+        `;
+        list.appendChild(item);
+      }
+    }
+
+    function openCreateModal() {
+      el('createStatus').textContent = '';
+      el('roomName').value = `联调房间${String(Date.now()).slice(-4)}`;
+      el('roomEndTime').value = localDateTimeValue(new Date(Date.now() + 2 * 60 * 60 * 1000));
+      el('createModal').classList.add('active');
+    }
+
+    function closeCreateModal() {
+      el('createModal').classList.remove('active');
+    }
+
+    function showListPage() {
+      setActiveTab('rooms');
+      el('roomDetailPage').classList.remove('active');
+      el('roomListPage').style.display = '';
+      selectedSeatId = null;
+      currentRoomId = null;
+      renderSession();
+    }
+
+    function localDateTimeValue(date) {
+      const offset = date.getTimezoneOffset();
+      const local = new Date(date.getTime() - offset * 60 * 1000);
+      return local.toISOString().slice(0, 16);
+    }
+
+    function localDateValue(date) {
+      const offset = date.getTimezoneOffset();
+      const local = new Date(date.getTime() - offset * 60 * 1000);
+      return local.toISOString().slice(0, 10);
+    }
+
+    function avatarUrl(seed) {
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed || 'user')}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    function formatTime(value) {
+      if (!value) return '-';
+      return new Date(value).toLocaleString('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    function formatMinutes(value) {
+      const minutes = Number(value) || 0;
+      if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const rest = minutes % 60;
+        return rest ? `${hours}小时${rest}分` : `${hours}小时`;
+      }
+      return `${minutes}分钟`;
+    }
+
+    function setActiveTab(tab) {
+      document.querySelectorAll('.nav-link').forEach((button) => {
+        button.classList.toggle('active', button.dataset.tab === tab);
+      });
+
+      el('homePage').classList.toggle('active', tab === 'home');
+      el('roomListPage').classList.toggle('active', tab === 'rooms');
+      el('statsPage').classList.toggle('active', tab === 'stats');
+      el('roomListPage').style.display = tab === 'rooms' ? '' : 'none';
+      el('roomDetailPage').classList.toggle('active', false);
+
+      if (tab === 'home') {
+        loadHomeData();
+      }
+
+      if (tab === 'rooms') {
+        loadRooms();
+      }
+
+      if (tab === 'stats') {
+        loadStatsPage();
+      }
+    }
+
+    function statusText(value) {
+      return {
+        studying: '学习中',
+        paused: '已暂停',
+        resting: '休息中',
+        ended: '已结束',
+      }[value] || value;
+    }
+
+    function modeText(value) {
+      return {
+        normal: '普通计时',
+        pomodoro: '番茄钟',
+      }[value] || value;
+    }
+
+    el('loginBtn').addEventListener('click', login);
+    el('healthBtn').addEventListener('click', checkHealth);
+    el('refreshBtn').addEventListener('click', loadRooms);
+    el('openCreateModalBtn').addEventListener('click', openCreateModal);
+    el('homeCreateRoomBtn').addEventListener('click', openCreateModal);
+    el('goRoomsBtn').addEventListener('click', () => setActiveTab('rooms'));
+    el('viewAllRoomsBtn').addEventListener('click', () => setActiveTab('rooms'));
+    el('refreshSeatsBtn').addEventListener('click', refreshSeats);
+    el('cancelCreateBtn').addEventListener('click', closeCreateModal);
+    el('createBtn').addEventListener('click', createRoom);
+    el('backToRoomsBtn').addEventListener('click', showListPage);
+    el('startStudyBtn').addEventListener('click', startStudy);
+    el('heartbeatBtn').addEventListener('click', sendHeartbeat);
+    el('breakBtn').addEventListener('click', takeBreak);
+    el('extendBreakBtn').addEventListener('click', extendBreak);
+    el('resumeBtn').addEventListener('click', resumeStudy);
+    el('endStudyBtn').addEventListener('click', endStudy);
+    el('cancelEmotionBtn').addEventListener('click', closeEmotionModal);
+    el('submitEmotionBtn').addEventListener('click', submitEmotion);
+    el('refreshStatsBtn').addEventListener('click', loadStatsPage);
+    el('openMakeupBtn').addEventListener('click', openMakeupModal);
+    el('cancelMakeupBtn').addEventListener('click', closeMakeupModal);
+    el('submitMakeupBtn').addEventListener('click', submitMakeup);
+    document.querySelectorAll('.nav-link').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.dataset.tab === 'stats') {
+          window.location.href = 'stats-prototype-demo.html';
+          return;
+        }
+        if (button.dataset.tab === 'profile') {
+          alert('该页面将在后续阶段实现。');
+          return;
+        }
+        setActiveTab(button.dataset.tab);
+      });
+    });
+    el('keyword').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') loadRooms();
+    });
+    el('createModal').addEventListener('click', (event) => {
+      if (event.target === el('createModal')) closeCreateModal();
+    });
+    el('emotionModal').addEventListener('click', (event) => {
+      if (event.target === el('emotionModal')) closeEmotionModal();
+    });
+    el('makeupModal').addEventListener('click', (event) => {
+      if (event.target === el('makeupModal')) closeMakeupModal();
+    });
+
+    checkHealth();
+    if (token) {
+      el('loginPanel').style.display = 'none';
+      el('appShell').classList.add('active');
+      loadCurrentUser();
+      loadActiveSession();
+      setActiveTab(initialTabFromHash());
+    }
+  </script>
+</body>
+</html>
