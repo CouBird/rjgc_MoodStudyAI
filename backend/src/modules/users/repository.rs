@@ -55,3 +55,69 @@ pub async fn create_user(
         .await?
         .ok_or(sqlx::Error::RowNotFound)
 }
+
+pub async fn update_profile(
+    pool: &MySqlPool,
+    user_id: i64,
+    nickname: &str,
+    profile: Option<&str>,
+) -> Result<UserRow, sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE users
+        SET nickname = ?, profile = ?, updated_at = NOW()
+        WHERE id = ?
+        "#,
+    )
+    .bind(nickname)
+    .bind(profile)
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+
+    find_by_id(pool, user_id)
+        .await?
+        .ok_or(sqlx::Error::RowNotFound)
+}
+
+pub async fn update_avatar_url(
+    pool: &MySqlPool,
+    user_id: i64,
+    avatar_url: &str,
+) -> Result<UserRow, sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE users
+        SET avatar_url = ?, updated_at = NOW()
+        WHERE id = ?
+        "#,
+    )
+    .bind(avatar_url)
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+
+    find_by_id(pool, user_id)
+        .await?
+        .ok_or(sqlx::Error::RowNotFound)
+}
+
+pub async fn update_password_hash(
+    pool: &MySqlPool,
+    user_id: i64,
+    password_hash: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE users
+        SET password_hash = ?, updated_at = NOW()
+        WHERE id = ?
+        "#,
+    )
+    .bind(password_hash)
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}

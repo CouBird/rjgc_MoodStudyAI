@@ -90,6 +90,8 @@ async fn user_can_register_login_and_fetch_me() {
 
     assert_eq!(status, StatusCode::OK, "{body}");
     assert_eq!(body["data"]["phone"], phone);
+    assert_eq!(body["data"]["profile"], Value::Null);
+    assert!(body["data"]["streakDays"].as_i64().is_some());
 }
 
 #[tokio::test]
@@ -123,6 +125,90 @@ async fn duplicate_register_returns_conflict() {
     )
     .await;
     assert_eq!(status, StatusCode::CONFLICT);
+}
+
+#[tokio::test]
+async fn user_can_update_profile_and_change_password() {
+    let phone = unique_phone("136");
+
+    let (status, body) = json_request(
+        test_app().await,
+        "POST",
+        "/api/v1/auth/register",
+        json!({
+            "phone": phone,
+            "nickname": "资料用户",
+            "password": "abc123456",
+            "confirmPassword": "abc123456",
+            "agreeTerms": true,
+            "agreePrivacy": true
+        }),
+        None,
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let token = body["data"]["token"].as_str().unwrap().to_string();
+
+    let (status, body) = json_request(
+        test_app().await,
+        "PATCH",
+        "/api/v1/users/me",
+        json!({
+            "nickname": "新的昵称",
+            "profile": "考研党一枚，目标是上岸理想的大学！"
+        }),
+        Some(&token),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["data"]["nickname"], "新的昵称");
+    assert_eq!(
+        body["data"]["profile"],
+        "考研党一枚，目标是上岸理想的大学！"
+    );
+
+    let (status, body) = json_request(
+        test_app().await,
+        "PATCH",
+        "/api/v1/users/me/password",
+        json!({
+            "currentPassword": "abc123456",
+            "newPassword": "newabc123456",
+            "confirmPassword": "newabc123456"
+        }),
+        Some(&token),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::OK, "{body}");
+
+    let (status, _) = json_request(
+        test_app().await,
+        "POST",
+        "/api/v1/auth/login",
+        json!({
+            "phone": phone,
+            "password": "abc123456"
+        }),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+
+    let (status, body) = json_request(
+        test_app().await,
+        "POST",
+        "/api/v1/auth/login",
+        json!({
+            "phone": phone,
+            "password": "newabc123456"
+        }),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
 }
 
 fn unique_phone(prefix: &str) -> String {

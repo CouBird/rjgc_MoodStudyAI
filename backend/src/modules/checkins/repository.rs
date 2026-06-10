@@ -215,16 +215,7 @@ pub async fn recalculate_streak_days(
     .fetch_all(&mut **tx)
     .await?;
 
-    let mut expected = today;
-    let mut streak = 0;
-    for date in dates {
-        if date == expected {
-            streak += 1;
-            expected = expected.pred_opt().ok_or(sqlx::Error::RowNotFound)?;
-        } else if date < expected {
-            break;
-        }
-    }
+    let streak = calculate_streak_days(&dates, today);
 
     sqlx::query(
         r#"
@@ -239,6 +230,36 @@ pub async fn recalculate_streak_days(
     .await?;
 
     Ok(streak)
+}
+
+fn calculate_streak_days(dates: &[NaiveDate], base_date: NaiveDate) -> i32 {
+    let Some(latest_date) = dates.first().copied() else {
+        return 0;
+    };
+
+    let yesterday = base_date.pred_opt();
+    let Some(mut expected) = (if latest_date == base_date {
+        Some(base_date)
+    } else {
+        yesterday.filter(|date| latest_date == *date)
+    }) else {
+        return 0;
+    };
+
+    let mut streak = 0;
+    for &date in dates {
+        if date == expected {
+            streak += 1;
+            expected = match expected.pred_opt() {
+                Some(value) => value,
+                None => break,
+            };
+        } else if date < expected {
+            break;
+        }
+    }
+
+    streak
 }
 
 async fn find_by_id(

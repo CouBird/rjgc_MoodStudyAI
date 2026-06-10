@@ -202,6 +202,50 @@ async fn user_can_create_makeup_checkin_and_query_calendar_detail() {
 }
 
 #[tokio::test]
+async fn streak_uses_yesterday_when_today_has_no_checkin() {
+    let token = register_test_user("129").await;
+    let yesterday = (Utc::now().date_naive() - Duration::days(1)).to_string();
+
+    let (status, makeup) = json_request(
+        test_app().await,
+        "POST",
+        "/api/v1/checkins",
+        json!({
+            "date": yesterday,
+            "totalMinutes": 45,
+            "makeupReason": "补昨天",
+            "summaryNote": "今天未打卡时仍显示截至昨天的连续天数"
+        }),
+        Some(&token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{makeup}");
+
+    let (status, today_stats) = json_request(
+        test_app().await,
+        "GET",
+        "/api/v1/users/me/stats/today",
+        json!({}),
+        Some(&token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{today_stats}");
+    assert_eq!(today_stats["data"]["todayCheckin"], false);
+    assert_eq!(today_stats["data"]["streakDays"], 1);
+
+    let (status, me) = json_request(
+        test_app().await,
+        "GET",
+        "/api/v1/users/me",
+        json!({}),
+        Some(&token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{me}");
+    assert_eq!(me["data"]["streakDays"], 1);
+}
+
+#[tokio::test]
 async fn valid_study_session_end_updates_today_checkin() {
     let token = register_test_user("130").await;
     let session_id = create_room_and_start_session(&token).await;
