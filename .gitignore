@@ -6,6 +6,8 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 
+node_modules/
+
 # Rust build outputs
 target/
 target-*/
@@ -35,6 +37,8 @@ backend/.git-backup/
 !docs/05-restful-api.md
 !docs/10-home-room-stats-backend-audit.md
 !docs/11-team-collaboration-guide.md
+!frontend/status_report.md
+!frontend/README.md
 docs/original/
 docs/database/
 
