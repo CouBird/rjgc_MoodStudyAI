@@ -1,0 +1,2834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI情绪治愈自习打卡空间</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#a78bfa',
+                        calm: '#f0f9ff',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        dark: '#1e293b',
+                        light: '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04);
+            }
+            .seat-available {
+                background-color: #d1fae5;
+                border-color: #10b981;
+            }
+            .seat-occupied {
+                background-color: #fee2e2;
+                border-color: #ef4444;
+            }
+            .seat-selected {
+                background-color: #c7d2fe;
+                border-color: #6366f1;
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+            }
+        }
+    </style>
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+</head>
+<body class="bg-gradient-to-br from-calm via-light to-purple-50 min-h-screen font-sans text-dark">
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-gray-200 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white">
+                    <i class="fa fa-book text-lg"></i>
+                </div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    心流自习室
+                </h1>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#" class="nav-link text-primary font-medium" data-page="home">首页</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-primary transition-colors" data-page="study-rooms">自习室</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-primary transition-colors" data-page="statistics">学习统计</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-primary transition-colors" data-page="profile">个人中心</a>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="user-menu" class="relative">
+                    <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none">
+                        <img src="https://picsum.photos/id/64/200/200" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-primary">
+                        <span class="hidden md:inline text-sm font-medium">小明同学</span>
+                        <i class="fa fa-chevron-down text-xs text-gray-500"></i>
+                    </button>
+                    <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden animate-fade-in">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-page="profile">
+                            <i class="fa fa-user mr-2"></i>个人中心
+                        </a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-page="statistics">
+                            <i class="fa fa-bar-chart mr-2"></i>学习统计
+                        </a>
+                        <div class="border-t border-gray-200 my-1"></div>
+                        <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                            <i class="fa fa-sign-out mr-2"></i>退出登录
+                        </a>
+                    </div>
+                </div>
+                
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 focus:outline-none">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="mobile-menu" class="md:hidden bg-white border-t border-gray-200 hidden animate-slide-up">
+            <div class="container mx-auto px-4 py-3 space-y-3">
+                <a href="#" class="block py-2 text-primary font-medium" data-page="home">首页</a>
+                <a href="#" class="block py-2 text-gray-600" data-page="study-rooms">自习室</a>
+                <a href="#" class="block py-2 text-gray-600" data-page="statistics">学习统计</a>
+                <a href="#" class="block py-2 text-gray-600" data-page="profile">个人中心</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <div id="login-page" class="page max-w-md mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center">
+                    <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                        <i class="fa fa-book text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">欢迎回来</h2>
+                    <p class="text-white/80">登录开始你的高效学习之旅</p>
+                </div>
+                
+                <div class="p-8">
+                    <form id="login-form">
+                        <div class="mb-6">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-phone"></i>
+                                </span>
+                                <input type="tel" id="phone" name="phone" placeholder="请输入手机号(测试禁用填11111111111)" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    maxlength="11" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-lock"></i>
+                                </span>
+                                <input type="password" id="password" name="password" placeholder="请输入密码（至少8位，包含字母和数字）" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    minlength="8" required>
+                                <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                                    <i class="fa fa-eye-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center mb-6">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="remember-me" class="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300 rounded">
+                                <label for="remember-me" class="ml-2 block text-sm text-gray-700">记住我</label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+                            登录
+                        </button>
+
+                        <div class="mt-4 text-center">
+                            <button type="button" id="admin-login-toggle" class="text-sm text-gray-500 hover:text-primary transition-colors">
+                                <i class="fa fa-user-shield mr-1"></i>管理员登录
+                            </button>
+                        </div>
+                    </form>
+
+                    <form id="admin-login-form" class="hidden">
+                        <div class="mb-6">
+                            <label for="admin-account" class="block text-sm font-medium text-gray-700 mb-2">管理员账号</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-user-shield"></i>
+                                </span>
+                                <input type="text" id="admin-account" placeholder="请输入管理员账号" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    required>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">测试账号：admin / admin1234</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="admin-password" class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-lock"></i>
+                                </span>
+                                <input type="password" id="admin-password" placeholder="请输入密码" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-dark to-gray-700 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-lg">
+                            管理员登录
+                        </button>
+
+                        <div class="mt-4 text-center">
+                            <button type="button" id="back-to-user-login" class="text-sm text-gray-500 hover:text-primary transition-colors">
+                                返回用户登录
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="user-register-link" class="mt-6 text-center">
+                        <p class="text-sm text-gray-600">
+                            还没有账号？<<a href="#" id="go-to-register" class="text-primary font-medium hover:underline">立即注册</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="register-page" class="page max-w-md mx-auto hidden">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center">
+                    <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                        <i class="fa fa-user-plus text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">创建账号</h2>
+                    <p class="text-white/80">加入我们，开启高效学习新模式</p>
+                </div>
+                
+                <div class="p-8">
+                    <form id="register-form">
+                        <div class="mb-6">
+                            <label for="reg-phone" class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-phone"></i>
+                                </span>
+                                <input type="tel" id="reg-phone" name="phone" placeholder="请输入11位手机号" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    maxlength="11" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="reg-nickname" class="block text-sm font-medium text-gray-700 mb-2">昵称</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-user"></i>
+                                </span>
+                                <input type="text" id="reg-nickname" name="nickname" placeholder="请输入昵称" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    maxlength="20" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="reg-password" class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-lock"></i>
+                                </span>
+                                <input type="password" id="reg-password" name="password" placeholder="至少8位，包含字母和数字" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    minlength="8" required>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">密码长度不少于8位，且必须同时包含字母与数字</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="reg-confirm-password" class="block text-sm font-medium text-gray-700 mb-2">确认密码</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-lock"></i>
+                                </span>
+                                <input type="password" id="reg-confirm-password" name="confirm-password" placeholder="请再次输入密码" 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                    minlength="8" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="agree-terms" class="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300 rounded" required>
+                                <label for="agree-terms" class="ml-2 block text-sm text-gray-700">
+                                    我已阅读并同意<a href="#" id="terms-link" class="text-primary hover:underline">用户协议</a>和<a href="#" id="privacy-link" class="text-primary hover:underline">隐私政策</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
+                            注册
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-gray-600">
+                            已有账号？<<a href="#" id="go-to-login" class="text-primary font-medium hover:underline">立即登录</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="home-page" class="page hidden">
+            <div class="mb-8">
+                <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between">
+                        <div class="mb-6 md:mb-0">
+                            <h2 class="text-2xl md:text-3xl font-bold mb-2 text-dark">
+                                你好，小明同学 <span class="animate-bounce-slow inline-block">👋</span>
+                            </h2>
+                            <p class="text-gray-600 mb-4">今天也要加油学习哦！保持良好的学习心态</p>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                    <span class="text-sm text-gray-500">今日学习</span>
+                                    <p class="text-xl font-bold text-primary">3.5小时</p>
+                                </div>
+                                <div class="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                    <span class="text-sm text-gray-500">连续打卡</span>
+                                    <p class="text-xl font-bold text-success">7天</p>
+                                </div>
+                                <div class="bg-white rounded-lg px-4 py-2 shadow-sm">
+                                    <span class="text-sm text-gray-500">今日心情</span>
+                                    <p class="text-xl font-bold text-warning">平静 😊</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <img src="https://picsum.photos/id/366/300/200" alt="学习插画" class="w-64 h-auto rounded-lg shadow-md">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">快速开始</h3>
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <i class="fa fa-play"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">立即进入自习室开始学习，专注当下，提升效率</p>
+                    <button class="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors" data-page="study-rooms">
+                        进入自习室
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">创建房间</h3>
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                            <i class="fa fa-plus"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">创建自己的专属自习室，邀请好友一起学习</p>
+                    <button class="w-full bg-secondary text-white py-2 rounded-lg hover:bg-secondary/90 transition-colors" id="create-room-btn">
+                        创建自习室
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">推荐自习室</h3>
+                        <a href="#" class="text-primary text-sm hover:underline" data-page="study-rooms">查看全部</a>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer" data-room-id="1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium mb-1">小学部</h4>
+                                    <p class="text-sm text-gray-500 mb-2">静心学习，快乐成长</p>
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <span class="flex items-center mr-4">
+                                            <i class="fa fa-users mr-1"></i> 32/50人
+                                        </span>
+                                        <span class="flex items-center">
+                                            <i class="fa fa-clock-o mr-1"></i> 开放中
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="bg-success/10 text-success text-xs px-2 py-1 rounded-full">热门</span>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer" data-room-id="2">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium mb-1">初中部</h4>
+                                    <p class="text-sm text-gray-500 mb-2">专注学习，共同进步</p>
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <span class="flex items-center mr-4">
+                                            <i class="fa fa-users mr-1"></i> 18/30人
+                                        </span>
+                                        <span class="flex items-center">
+                                            <i class="fa fa-clock-o mr-1"></i> 开放中
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">推荐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer" data-room-id="3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium mb-1">高中部</h4>
+                                    <p class="text-sm text-gray-500 mb-2">埋头苦读，一起努力</p>
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <span class="flex items-center mr-4">
+                                            <i class="fa fa-users mr-1"></i> 12/20人
+                                        </span>
+                                        <span class="flex items-center">
+                                            <i class="fa fa-clock-o mr-1"></i> 开放中
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">安静</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="study-rooms-page" class="page hidden">
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold mb-4 md:mb-0">自习室大厅</h2>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="relative">
+                            <input type="text" placeholder="搜索自习室..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors w-full sm:w-64">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                <i class="fa fa-search"></i>
+                            </span>
+                        </div>
+                        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center" id="create-room-btn-2">
+                            <i class="fa fa-plus mr-2"></i> 创建自习室
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 小学部 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-r from-blue-400 to-purple-500 relative">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <span class="absolute top-3 right-3 bg-white/20 text-white text-xs px-2 py-1 rounded-full">32/50人</span>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h3 class="font-bold text-lg">小学部</h3>
+                            <p class="text-sm text-white/80">静心学习，快乐成长</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://picsum.photos/id/64/100/100" alt="房主头像" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-sm text-gray-600">房主：小学老师</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                            在这里静心学习，培养良好的学习习惯，和小伙伴们一起快乐成长，共同进步！
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                <i class="fa fa-clock-o mr-1"></i> 开放至23:00
+                            </span>
+                            <button class="bg-primary text-white px-4 py-1 rounded-lg text-sm hover:bg-primary/90 transition-colors join-room-btn" data-room-id="1">
+                                加入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 初中部 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-r from-green-400 to-teal-500 relative">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <span class="absolute top-3 right-3 bg-white/20 text-white text-xs px-2 py-1 rounded-full">18/30人</span>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h3 class="font-bold text-lg">初中部</h3>
+                            <p class="text-sm text-white/80">专注学习，共同进步</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://picsum.photos/id/91/100/100" alt="房主头像" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-sm text-gray-600">房主：初中班主任</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                            专注学习，夯实基础，与同学们一起努力，为未来的学习之路打下坚实根基。
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                <i class="fa fa-clock-o mr-1"></i> 开放至22:30
+                            </span>
+                            <button class="bg-primary text-white px-4 py-1 rounded-lg text-sm hover:bg-primary/90 transition-colors join-room-btn" data-room-id="2">
+                                加入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 高中部 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-r from-orange-400 to-red-500 relative">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <span class="absolute top-3 right-3 bg-white/20 text-white text-xs px-2 py-1 rounded-full">12/20人</span>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h3 class="font-bold text-lg">高中部</h3>
+                            <p class="text-sm text-white/80">埋头苦读，一起努力</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://picsum.photos/id/26/100/100" alt="房主头像" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-sm text-gray-600">房主：高中学长</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                            高中时光宝贵，埋头苦读，互相督促，一起为目标奋斗，不留遗憾！
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                <i class="fa fa-clock-o mr-1"></i> 全天开放
+                            </span>
+                            <button class="bg-primary text-white px-4 py-1 rounded-lg text-sm hover:bg-primary/90 transition-colors join-room-btn" data-room-id="3">
+                                加入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 大学部 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-r from-indigo-400 to-blue-500 relative">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <span class="absolute top-3 right-3 bg-white/20 text-white text-xs px-2 py-1 rounded-full">25/40人</span>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h3 class="font-bold text-lg">大学部</h3>
+                            <p class="text-sm text-white/80">自主学习，互相督促</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://picsum.photos/id/42/100/100" alt="房主头像" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-sm text-gray-600">房主：大学学姐</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                            大学阶段更需要自律，在这里自主学习，互相督促，让每一天都过得充实有意义。
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                <i class="fa fa-clock-o mr-1"></i> 开放至24:00
+                            </span>
+                            <button class="bg-primary text-white px-4 py-1 rounded-lg text-sm hover:bg-primary/90 transition-colors join-room-btn" data-room-id="4">
+                                加入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 考研部 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-r from-pink-400 to-rose-500 relative">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <span class="absolute top-3 right-3 bg-white/20 text-white text-xs px-2 py-1 rounded-full">15/30人</span>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h3 class="font-bold text-lg">考研部</h3>
+                            <p class="text-sm text-white/80">考研路上，并肩作战</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://picsum.photos/id/1005/100/100" alt="房主头像" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-sm text-gray-600">房主：考研导师</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                            考研是一场持久战，在这里与战友们并肩作战，坚持到底，终将上岸！
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                <i class="fa fa-clock-o mr-1"></i> 开放至22:00
+                            </span>
+                            <button class="bg-gray-300 text-white px-4 py-1 rounded-lg text-sm cursor-not-allowed" disabled>已关闭</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 阅读室 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="h-32 bg-gradient-to-r from-yellow-400 to-amber-500 relative">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <span class="absolute top-3 right-3 bg-white/20 text-white text-xs px-2 py-1 rounded-full">8/20人</span>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h3 class="font-bold text-lg">阅读室</h3>
+                            <p class="text-sm text-white/80">静心阅读，享受书香</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://picsum.photos/id/823/100/100" alt="房主头像" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-sm text-gray-600">房主：图书管理员</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                            放下手机，捧起书本，在安静的氛围中享受阅读的乐趣，让心灵在书香中得到滋养。
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                <i class="fa fa-clock-o mr-1"></i> 全天开放
+                            </span>
+                            <button class="bg-primary text-white px-4 py-1 rounded-lg text-sm hover:bg-primary/90 transition-colors join-room-btn" data-room-id="6">
+                                加入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="room-detail-page" class="page hidden">
+            <div class="mb-6">
+                <button class="flex items-center text-gray-600 hover:text-primary transition-colors mb-4" id="back-to-rooms">
+                    <i class="fa fa-arrow-left mr-2"></i> 返回自习室列表
+                </button>
+                
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="h-40 bg-gradient-to-r from-blue-400 to-purple-500 relative">
+                        <div class="absolute inset-0 bg-black/30"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h2 class="text-2xl font-bold mb-1" id="room-title">小学部</h2>
+                                    <p class="text-white/80" id="room-description">静心学习，快乐成长</p>
+                                </div>
+                                <div class="mt-4 md:mt-0 flex items-center">
+                                    <span class="bg-white/20 text-white px-3 py-1 rounded-full text-sm mr-3">
+                                        <i class="fa fa-users mr-1"></i> <span id="room-members">32</span>/50人
+                                    </span>
+                                    <span class="bg-success text-white px-3 py-1 rounded-full text-sm">
+                                        <i class="fa fa-circle mr-1 text-xs"></i> 开放中
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="md:w-2/3">
+                                <h3 class="text-lg font-semibold mb-4">选择座位</h3>
+                                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                                    <div class="grid grid-cols-5 gap-3" id="seat-grid">
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center space-x-6 text-sm text-gray-600 mb-6">
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 rounded seat-available mr-2"></div>
+                                        <span>可选择</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 rounded seat-occupied mr-2"></div>
+                                        <span>已占用</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-4 rounded seat-selected mr-2"></div>
+                                        <span>已选择</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <button class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors flex-1" id="start-study-btn" disabled>
+                                        <i class="fa fa-play mr-2"></i> 开始学习
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="md:w-1/3">
+                                <h3 class="text-lg font-semibold mb-4">房间成员 (<span id="member-count">32</span>)</h3>
+                                <div class="bg-gray-50 rounded-lg p-4 max-h-80 overflow-y-auto">
+                                    <div class="space-y-3" id="member-list">
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6">
+                                    <h4 class="font-medium mb-2">房间信息</h4>
+                                    <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600 space-y-2">
+                                        <div class="flex justify-between">
+                                            <span>房主</span>
+                                            <span class="font-medium">小学老师</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>创建时间</span>
+                                            <span>2024-05-10</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>开放时长</span>
+                                            <span>至23:00</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>累计学习</span>
+                                            <span>1,234小时</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="study-timer-page" class="page hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center">
+                        <h2 class="text-2xl font-bold mb-2" id="current-room-name">小学部</h2>
+                        <p class="text-white/80">座位号：<span id="current-seat-number">A-03</span></p>
+                    </div>
+                    
+                    <div class="p-8 text-center">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                            <div class="flex gap-3">
+                                <button id="mode-normal-btn" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-primary text-white">
+                                    <i class="fa fa-clock-o mr-1"></i>正向计时
+                                </button>
+                                <button id="mode-pomodoro-btn" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300">
+                                    <i class="fa fa-hourglass-half mr-1"></i>番茄钟
+                                </button>
+                            </div>
+                            <div id="pomodoro-round-badge" class="hidden px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm font-bold">
+                                <i class="fa fa-repeat mr-1"></i>第 <span id="pomodoro-count">0</span> 轮
+                            </div>
+                        </div>
+                        
+                        <div id="normal-timer-section" class="mb-8">
+                            <div class="mb-2">
+                                <span id="total-timer-display" class="text-5xl md:text-6xl font-bold text-dark font-mono">00:00:00</span>
+                            </div>
+                        </div>
+                        
+                        <div id="pomodoro-timer-section" class="mb-8 hidden">
+                            <div class="relative w-64 h-64 mx-auto mb-4">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8" />
+                                    <circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="8" 
+                                        stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 50 50)" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="pomodoro-timer-display" class="text-5xl font-bold text-dark">25:00</span>
+                                    <span class="text-gray-500 mt-2">番茄钟模式</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="study-content" class="block text-sm font-medium text-gray-700 mb-2 text-left">学习内容</label>
+                            <input type="text" id="study-content" placeholder="输入你正在学习的内容..." 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button id="pause-timer-btn" class="bg-warning text-white px-8 py-3 rounded-lg hover:bg-warning/90 transition-colors">
+                                <i class="fa fa-pause mr-2"></i> 暂停
+                            </button>
+                            <button id="take-break-btn" class="bg-secondary text-white px-8 py-3 rounded-lg hover:bg-secondary/90 transition-colors">
+                                <i class="fa fa-coffee mr-2"></i> 休息一下
+                            </button>
+                            <button id="end-study-btn" class="bg-danger text-white px-8 py-3 rounded-lg hover:bg-danger/90 transition-colors">
+                                <i class="fa fa-stop mr-2"></i> 结束学习
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statistics-page" class="page hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold mb-6">学习统计</h2>
+                
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button class="stats-tab px-4 py-2 bg-primary text-white rounded-full text-sm" data-period="week">本周</button>
+                    <button class="stats-tab px-4 py-2 bg-white text-gray-700 rounded-full text-sm hover:bg-gray-100 transition-colors" data-period="month">本月</button>
+                    <button class="stats-tab px-4 py-2 bg-white text-gray-700 rounded-full text-sm hover:bg-gray-100 transition-colors" data-period="year">本年</button>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 flex items-center justify-center text-2xl" id="dominant-emotion-emoji">
+                    😊
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">主要情绪：<span id="dominant-emotion-text" class="text-primary font-bold">平静</span></h3>
+                    <p class="text-sm text-gray-600 mt-1" id="dominant-emotion-desc">这段时间内你常感到平静。</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-500">总学习时长</h3>
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <i class="fa fa-clock-o"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-dark">28.5<span class="text-lg font-normal text-gray-500 ml-1">小时</span></p>
+                    <p class="text-sm text-success mt-2">
+                        <i class="fa fa-arrow-up mr-1"></i> 比上周增长12%
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-500">日均学习</h3>
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                            <i class="fa fa-calendar-check-o"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-dark">4.1<span class="text-lg font-normal text-gray-500 ml-1">小时</span></p>
+                    <p class="text-sm text-success mt-2">
+                        <i class="fa fa-arrow-up mr-1"></i> 比上周增长8%
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-500">连续打卡</h3>
+                        <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success">
+                            <i class="fa fa-fire"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-dark">7<span class="text-lg font-normal text-gray-500 ml-1">天</span></p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        继续保持！
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-500">完成打卡</h3>
+                        <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center text-warning">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-dark">21<span class="text-lg font-normal text-gray-500 ml-1">次</span></p>
+                    <p class="text-sm text-success mt-2">
+                        <i class="fa fa-arrow-up mr-1"></i> 比上周增长5次
+                    </p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-6">学习时长趋势</h3>
+                    <div class="h-64">
+                        <canvas id="study-time-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-6">情绪变化趋势</h3>
+                    <div class="h-64">
+                        <canvas id="emotion-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-6">学习打卡日历</h3>
+                <div class="grid grid-cols-7 gap-2" id="calendar-grid">
+                </div>
+                <div class="mt-4 flex justify-center space-x-6 text-sm text-gray-600">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded bg-success mr-2"></div>
+                        <span>已打卡</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded bg-gray-200 mr-2"></div>
+                        <span>未打卡</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded bg-primary mr-2"></div>
+                        <span>今天</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-page" class="page hidden">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">个人中心</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                            <div class="relative inline-block mb-4">
+                                <img src="https://picsum.photos/id/64/200/200" alt="用户头像" class="w-32 h-32 rounded-full object-cover border-4 border-primary">
+                                <button class="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors">
+                                    <i class="fa fa-camera text-xs"></i>
+                                </button>
+                            </div>
+                            <h3 class="text-xl font-bold mb-1">小明同学</h3>
+                            <p class="text-gray-500 mb-4">ID: 12345678</p>
+                            
+                            <div class="flex justify-center space-x-8 mb-6">
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-primary">28</p>
+                                    <p class="text-sm text-gray-500">学习天数</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-secondary">126</p>
+                                    <p class="text-sm text-gray-500">学习小时</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-success">7</p>
+                                    <p class="text-sm text-gray-500">连续打卡</p>
+                                </div>
+                            </div>
+                            
+                            <button id="edit-profile-btn" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                                编辑个人资料
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4">个人信息</h3>
+                            <form id="profile-basic-form">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <label for="profile-nickname" class="block text-sm font-medium text-gray-700 mb-2">昵称</label>
+                                        <input type="text" id="profile-nickname" value="小明同学" 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                                    </div>
+                                    <div>
+                                        <label for="profile-phone" class="block text-sm font-medium text-gray-700 mb-2">手机号</label>
+                                        <input type="tel" id="profile-phone" value="138****1234" disabled
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                                        <p class="text-xs text-gray-500 mt-1">手机号不可修改</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <label for="profile-bio" class="block text-sm font-medium text-gray-700 mb-2">个人简介</label>
+                                    <textarea id="profile-bio" rows="3" placeholder="介绍一下自己吧..." 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">考研党一枚，目标是考上理想的大学！</textarea>
+                                </div>
+                                
+                                <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                                    保存修改
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4">修改密码</h3>
+                            <form>
+                                <div class="mb-4">
+                                    <label for="current-password" class="block text-sm font-medium text-gray-700 mb-2">当前密码</label>
+                                    <input type="password" id="current-password" placeholder="请输入当前密码" 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="new-password" class="block text-sm font-medium text-gray-700 mb-2">新密码</label>
+                                    <input type="password" id="new-password" placeholder="请输入新密码（至少8位，包含字母和数字）" 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <label for="confirm-new-password" class="block text-sm font-medium text-gray-700 mb-2">确认新密码</label>
+                                    <input type="password" id="confirm-new-password" placeholder="请再次输入新密码" 
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                                </div>
+                                
+                                <button type="submit" class="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
+                                    修改密码
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="edit-profile-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slide-up">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <h3 class="text-xl font-bold mb-2">编辑个人资料</h3>
+                <p class="text-white/80">修改你的头像和昵称</p>
+            </div>
+            <div class="p-6">
+                <form id="edit-profile-form">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">头像</label>
+                        <div class="flex flex-col items-center">
+                            <div class="relative mb-3">
+                                <img id="edit-avatar-preview" src="https://picsum.photos/id/64/200/200" alt="头像预览" class="w-24 h-24 rounded-full object-cover border-4 border-primary">
+                                <div id="avatar-upload-hint" class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center text-white text-xs opacity-0 hover:opacity-100 transition-opacity cursor-pointer" onclick="document.getElementById('edit-avatar-input').click()">
+                                    <i class="fa fa-camera mr-1"></i>更换
+                                </div>
+                            </div>
+                            <input type="file" id="edit-avatar-input" accept="image/jpeg,image/jpg,image/png" class="hidden">
+                            <button type="button" onclick="document.getElementById('edit-avatar-input').click()" class="text-sm text-primary hover:text-primary/80 transition-colors mb-2">
+                                <i class="fa fa-upload mr-1"></i>点击上传头像
+                            </button>
+                            <p class="text-xs text-gray-500">支持 JPG/PNG 格式，文件大小不超过 3MB</p>
+                            <p id="avatar-error" class="text-xs text-danger mt-1 hidden"></p>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label for="edit-nickname" class="block text-sm font-medium text-gray-700 mb-2">昵称</label>
+                        <input type="text" id="edit-nickname" value="小明同学" maxlength="20"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                        <p class="text-xs text-gray-500 mt-1">最多 20 个字符</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button type="button" id="cancel-edit-profile-btn" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                            取消
+                        </button>
+                        <button type="submit" class="flex-1 bg-primary text-white py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                            保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人资料修改成功弹窗 -->
+    <div id="profile-success-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-slide-up text-center">
+            <div class="bg-gradient-to-r from-success to-green-400 p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-check-circle text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">修改成功</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">已修改个人资料</p>
+                <button id="close-profile-success-btn" class="w-full bg-success text-white py-2.5 rounded-lg hover:bg-success/90 transition-colors font-medium">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+    <!-- 管理员后台页面 -->
+    <div id="admin-page" class="page hidden fixed inset-0 z-40 bg-gray-50">
+        <div class="flex h-full">
+            <aside class="w-64 bg-dark text-white hidden md:flex flex-col h-full">
+                <div class="p-6 border-b border-gray-700">
+                    <h2 class="text-xl font-bold">管理后台</h2>
+                    <p class="text-xs text-gray-400 mt-1">AI情绪治愈自习空间</p>
+                </div>
+                <nav class="flex-1 px-4 py-4 space-y-2">
+                    <button class="admin-nav-btn w-full text-left px-4 py-3 rounded-lg bg-white/10 text-white transition-colors" data-tab="dashboard">
+                        <i class="fa fa-dashboard mr-2"></i>数据概览
+                    </button>
+                    <button class="admin-nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gray-300 transition-colors" data-tab="users">
+                        <i class="fa fa-users mr-2"></i>用户管理
+                    </button>
+                    <button class="admin-nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gray-300 transition-colors" data-tab="rooms">
+                        <i class="fa fa-book mr-2"></i>自习室管理
+                    </button>
+                    <button class="admin-nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 text-gray-300 transition-colors" data-tab="logs">
+                        <i class="fa fa-file-text mr-2"></i>日志审计
+                    </button>
+                </nav>
+                <div class="p-4 border-t border-gray-700">
+                    <button id="admin-logout-btn" class="w-full text-left px-4 py-2 text-red-400 hover:bg-white/5 rounded-lg transition-colors">
+                        <i class="fa fa-sign-out mr-2"></i>退出登录
+                    </button>
+                </div>
+            </aside>
+            
+            <main class="flex-1 md:ml-64 h-full overflow-y-auto p-6">
+                <div id="admin-tab-dashboard" class="admin-tab block">
+                    <h2 class="text-2xl font-bold mb-6 text-dark">数据概览</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">今日总在线</h3>
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="fa fa-users"></i></div>
+                            </div>
+                            <p class="text-3xl font-bold text-dark" id="admin-stat-online">128</p>
+                            <p class="text-sm text-success mt-2"><i class="fa fa-arrow-up mr-1"></i>较昨日 +12%</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">今日新增用户</h3>
+                                <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary"><i class="fa fa-user-plus"></i></div>
+                            </div>
+                            <p class="text-3xl font-bold text-dark" id="admin-stat-new">23</p>
+                            <p class="text-sm text-success mt-2"><i class="fa fa-arrow-up mr-1"></i>较昨日 +5</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">今日有效打卡</h3>
+                                <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success"><i class="fa fa-check-circle"></i></div>
+                            </div>
+                            <p class="text-3xl font-bold text-dark" id="admin-stat-checkin">456</p>
+                            <p class="text-sm text-success mt-2"><i class="fa fa-arrow-up mr-1"></i>较昨日 +8%</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">房间总数</h3>
+                                <div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center text-warning"><i class="fa fa-home"></i></div>
+                            </div>
+                            <p class="text-3xl font-bold text-dark" id="admin-stat-rooms">18</p>
+                            <p class="text-sm text-gray-500 mt-2">其中 <span id="admin-stat-closed">1</span> 个已关闭</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">最近7日活跃用户趋势</h3>
+                        <div class="h-72">
+                            <canvas id="admin-active-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="admin-tab-users" class="admin-tab hidden">
+                    <h2 class="text-2xl font-bold mb-6 text-dark">用户管理</h2>
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                            <div class="relative flex-1">
+                                <input type="text" id="admin-user-search" placeholder="搜索手机号或昵称..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"><i class="fa fa-search"></i></span>
+                            </div>
+                            <button id="admin-search-btn" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">搜索</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">用户</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">手机号</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">注册时间</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">状态</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-user-table" class="text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="admin-tab-rooms" class="admin-tab hidden">
+                    <h2 class="text-2xl font-bold mb-6 text-dark">自习室管理</h2>
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">房间名称</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">房主</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">人数/容量</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">状态</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-room-table" class="text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="admin-tab-logs" class="admin-tab hidden">
+                    <h2 class="text-2xl font-bold mb-6 text-dark">日志审计</h2>
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex flex-wrap gap-4 mb-6">
+                            <select id="admin-log-type" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                <option value="">全部类型</option>
+                                <option value="login">登录</option>
+                                <option value="disable">禁用用户</option>
+                                <option value="enable">解禁用户</option>
+                                <option value="room_close">关闭房间</option>
+                                <option value="room_open">开启房间</option>
+                            </select>
+                            <input type="date" id="admin-log-date" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            <button id="admin-log-filter" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">筛选</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">时间</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">操作者</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">类型</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">对象</th>
+                                        <th class="py-3 px-4 text-sm font-medium text-gray-600">详情</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-log-table" class="text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 账号禁用提示弹窗 -->
+    <div id="disabled-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-slide-up text-center">
+            <div class="bg-gradient-to-r from-danger to-red-400 p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-ban text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">账号已被禁用</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">
+                    您的账号已被管理员禁用，暂时无法访问系统。如有疑问，请联系客服或管理员进行处理。
+                </p>
+                <button id="close-disabled-modal" class="w-full bg-danger text-white py-2.5 rounded-lg hover:bg-danger/90 transition-colors font-medium">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重复会话提示弹窗 -->
+    <div id="duplicate-session-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-slide-up text-center">
+            <div class="bg-gradient-to-r from-warning to-orange-400 p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-exclamation-triangle text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">无法进行此操作</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">
+                    您当前有正在进行的学习会话，请先结束当前学习再加入其他房间！
+                </p>
+                <button id="close-duplicate-modal" class="w-full bg-primary text-white py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学习不足10分钟确认弹窗 -->
+    <div id="short-session-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-slide-up text-center">
+            <div class="bg-gradient-to-r from-warning to-orange-400 p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-clock-o text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">学习时长不足</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">
+                    您本次学习不足十分钟，不计入有效打卡，是否直接结束学习？
+                </p>
+                <div class="flex gap-4">
+                    <button id="continue-study-btn" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        否，继续学习
+                    </button>
+                    <button id="confirm-end-short-btn" class="flex-1 bg-danger text-white py-2.5 rounded-lg hover:bg-danger/90 transition-colors font-medium">
+                        是，结束学习
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结束番茄钟确认弹窗 -->
+    <div id="end-pomodoro-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-slide-up text-center">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-question-circle text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">确认切换</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">
+                    是否结束当前番茄钟？切换后番茄钟计时将清零。
+                </p>
+                <div class="flex gap-4">
+                    <button id="cancel-end-pomodoro" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                        否，留在番茄钟
+                    </button>
+                    <button id="confirm-end-pomodoro" class="flex-1 bg-primary text-white py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                        是，切换正向计时
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="emotion-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slide-up">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <h3 class="text-xl font-bold mb-2">记录你的心情</h3>
+                <p class="text-white/80">学习结束了，今天感觉怎么样？</p>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="平静">
+                        <span class="text-3xl mb-2">😊</span>
+                        <span class="text-sm">平静</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="自豪">
+                        <span class="text-3xl mb-2">😎</span>
+                        <span class="text-sm">自豪</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="满足">
+                        <span class="text-3xl mb-2">😌</span>
+                        <span class="text-sm">满足</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="快乐">
+                        <span class="text-3xl mb-2">😄</span>
+                        <span class="text-sm">快乐</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="疲惫">
+                        <span class="text-3xl mb-2">😴</span>
+                        <span class="text-sm">疲惫</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="焦虑">
+                        <span class="text-3xl mb-2">😰</span>
+                        <span class="text-sm">焦虑</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="难过">
+                        <span class="text-3xl mb-2">😢</span>
+                        <span class="text-sm">难过</span>
+                    </button>
+                    <button class="modal-emotion-btn flex flex-col items-center p-3 rounded-lg hover:bg-gray-100 transition-colors" data-emotion="自定义">
+                        <span class="text-3xl mb-2">✏️</span>
+                        <span class="text-sm">自定义</span>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="emotion-note" class="block text-sm font-medium text-gray-700 mb-2">备注（可选）</label>
+                    <textarea id="emotion-note" rows="2" placeholder="写下你现在的感受..." 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"></textarea>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button id="submit-emotion-btn" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                        提交
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ai-feedback-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slide-up">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-robot text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">AI 情绪助手</h3>
+            </div>
+            
+            <div class="p-6">
+                <div class="bg-calm rounded-lg p-4 mb-6">
+                    <p id="ai-feedback-text" class="text-gray-700">
+                        今天的你也辛苦了！完成了专注学习，非常棒！闭上眼睛，做10次深呼吸，想象压力随呼气离开身体。保持自己的节奏，明天继续加油。
+                    </p>
+                </div>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success mr-3 flex-shrink-0">
+                            <i class="fa fa-lightbulb-o"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-sm mb-1">学习建议</h4>
+                            <p class="text-sm text-gray-600">建议每学习25分钟休息5分钟，劳逸结合效率更高</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center text-warning mr-3 flex-shrink-0">
+                            <i class="fa fa-heart"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-sm mb-1">放松建议</h4>
+                            <p class="text-sm text-gray-600">可以听听轻音乐，或者站起来活动一下身体</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="close-ai-feedback-btn" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                    知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-room-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slide-up">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <h3 class="text-xl font-bold mb-2">创建自习室</h3>
+                <p class="text-white/80">创建属于你的专属学习空间</p>
+            </div>
+            
+            <div class="p-6">
+                <form id="create-room-form">
+                    <div class="mb-4">
+                        <label for="room-name" class="block text-sm font-medium text-gray-700 mb-2">房间名称</label>
+                        <input type="text" id="room-name" placeholder="请输入房间名称" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                            maxlength="20" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="room-capacity" class="block text-sm font-medium text-gray-700 mb-2">房间容量 (1-50人)</label>
+                        <input type="number" id="room-capacity" min="1" max="50" value="20" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                            required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="room-description" class="block text-sm font-medium text-gray-700 mb-2">房间描述</label>
+                        <textarea id="room-description" rows="3" placeholder="介绍一下你的自习室..." 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                            maxlength="255"></textarea>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="room-end-time" class="block text-sm font-medium text-gray-700 mb-2">开放截止时间</label>
+                        <input type="datetime-local" id="room-end-time" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                            required>
+                        <p class="mt-1 text-xs text-gray-500">截止时间必须至少比当前时间晚1小时</p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button type="button" id="cancel-create-room-btn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                            取消
+                        </button>
+                        <button type="submit" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                            创建
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="terms-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-slide-up max-h-[80vh] flex flex-col">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <h3 class="text-xl font-bold">用户协议</h3>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div class="text-sm text-gray-700 space-y-4">
+                    <h4 class="font-bold text-base">1. 服务条款</h4>
+                    <p>欢迎使用AI情绪治愈自习打卡空间（以下简称"本服务"）。本服务由我们团队开发运营，旨在为用户提供线上自习与情绪辅助功能。使用本服务即表示您同意本协议全部条款。</p>
+
+                    <h4 class="font-bold text-base">2. 账号注册</h4>
+                    <p>用户须使用真实手机号注册账号，密码长度不少于8位且须同时包含字母与数字。用户应对账号安全负责，不得将账号转让或出借他人使用。</p>
+
+                    <h4 class="font-bold text-base">3. 用户行为规范</h4>
+                    <p>用户在使用本服务过程中，应遵守法律法规，不得发布违法违规信息，不得干扰系统正常运行，不得侵犯他人合法权益。</p>
+
+                    <h4 class="font-bold text-base">4. 服务内容</h4>
+                    <p>本服务提供自习室创建与加入、学习计时、情绪记录、AI辅助反馈等功能。我们保留随时调整、中断或终止部分或全部服务的权利。</p>
+
+                    <h4 class="font-bold text-base">5. 免责声明</h4>
+                    <p>本服务提供的AI情绪反馈仅供参考，不构成医疗或心理咨询建议。如您有严重心理困扰，请及时寻求专业帮助。</p>
+
+                    <h4 class="font-bold text-base">6. 协议修改</h4>
+                    <p>我们有权在必要时修改本协议条款，修改后的协议将在系统中公布，继续使用本服务视为接受修改后的协议。</p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <button id="close-terms-btn" class="w-full bg-primary text-white py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="privacy-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-slide-up max-h-[80vh] flex flex-col">
+            <div class="bg-gradient-to-r from-primary to-secondary p-6 text-white text-center rounded-t-2xl">
+                <h3 class="text-xl font-bold">隐私政策</h3>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div class="text-sm text-gray-700 space-y-4">
+                    <h4 class="font-bold text-base">1. 信息收集</h4>
+                    <p>我们收集的信息包括：注册时提供的手机号、昵称、头像；学习记录、打卡数据、情绪标签；设备信息及使用日志。</p>
+
+                    <h4 class="font-bold text-base">2. 信息使用</h4>
+                    <p>我们使用您的信息用于：提供和维护服务；生成个人学习统计与情绪趋势分析；改进服务体验；发送服务通知。</p>
+
+                    <h4 class="font-bold text-base">3. 信息保护</h4>
+                    <p>我们采用加密技术保护您的个人信息，密码经加盐哈希处理后存储。未经您的同意，我们不会向第三方披露您的个人信息，法律法规另有规定的除外。</p>
+
+                    <h4 class="font-bold text-base">4. 数据存储</h4>
+                    <p>您的数据存储在安全的服务器上，我们会定期备份。您有权删除个人账号及相关数据，删除后数据将在合理期限内清除。</p>
+
+                    <h4 class="font-bold text-base">5. Cookie与追踪</h4>
+                    <p>我们可能使用Cookie及类似技术来改善用户体验、分析服务使用情况。您可通过浏览器设置管理Cookie。</p>
+
+                    <h4 class="font-bold text-base">6. 政策更新</h4>
+                    <p>本政策可能不时更新，更新后的政策将在系统中公布。如您继续使用本服务，视为接受更新后的政策。</p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <button id="close-privacy-btn" class="w-full bg-primary text-white py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="break-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slide-up">
+            <div class="bg-gradient-to-r from-secondary to-accent p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-coffee text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">休息时间到！</h3>
+            </div>
+            
+            <div class="p-6 text-center">
+                <div class="mb-6">
+                    <p class="text-4xl font-bold text-dark" id="break-timer">05:00</p>
+                </div>
+                
+                <div class="bg-calm rounded-lg p-4 mb-6">
+                    <p class="text-gray-700">
+                        休息小贴士：站起来活动一下身体，看看远处的绿色植物，让眼睛和大脑都放松一下。
+                    </p>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button id="end-break-btn" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                        结束休息
+                    </button>
+                    <button id="extend-break-btn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                        延长5分钟
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 敏感词提示弹窗 -->
+    <div id="sensitive-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-slide-up text-center">
+            <div class="bg-gradient-to-r from-danger to-red-400 p-6 text-white text-center rounded-t-2xl">
+                <div class="w-16 h-16 rounded-full bg-white/20 mx-auto flex items-center justify-center mb-4">
+                    <i class="fa fa-exclamation-circle text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">存在敏感词！</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">您的输入包含敏感词，请修改后重新提交。</p>
+                <button id="close-sensitive-btn" class="w-full bg-danger text-white py-2.5 rounded-lg hover:bg-danger/90 transition-colors font-medium">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 'login';
+        let selectedSeat = null;
+        let timerInterval = null;
+        let breakInterval = null;
+        let timerMode = 'normal';
+        let totalSessionTime = 0;
+        let pomodoroTime = 25 * 60;
+        let pomodoroCount = 0;
+        let breakTime = 5 * 60;
+        let isPaused = false;
+        let isBreak = false;
+        let selectedEmotion = '平静';
+        let isStudying = false;
+        let isAdmin = false;
+
+        const adminMockData = {
+            users: [
+                { id: 1, nickname: '小明同学', phone: '13800138000', avatar: '64', registerTime: '2024-05-01', status: 'active' },
+                { id: 2, nickname: '小红', phone: '13900139000', avatar: '91', registerTime: '2024-05-02', status: 'active' },
+                { id: 3, nickname: '高中学长', phone: '13700137000', avatar: '26', registerTime: '2024-05-03', status: 'active' },
+                { id: 4, nickname: '违规用户A', phone: '13600136000', avatar: '42', registerTime: '2024-05-04', status: 'disabled' },
+                { id: 5, nickname: '初中班主任', phone: '13500135000', avatar: '1005', registerTime: '2024-05-05', status: 'active' },
+                { id: 6, nickname: '书虫', phone: '13400134000', avatar: '823', registerTime: '2024-05-06', status: 'active' },
+                { id: 7, nickname: '大学学姐', phone: '13300133000', avatar: '366', registerTime: '2024-05-07', status: 'active' },
+                { id: 8, nickname: 'test_user', phone: '11111111111', avatar: '65', registerTime: '2024-05-08', status: 'disabled' }
+            ],
+            rooms: [
+                { id: 1, name: '小学部', owner: '小学老师', members: 32, capacity: 50, status: 'open' },
+                { id: 2, name: '初中部', owner: '初中班主任', members: 18, capacity: 30, status: 'open' },
+                { id: 3, name: '高中部', owner: '高中学长', members: 12, capacity: 20, status: 'open' },
+                { id: 4, name: '大学部', owner: '大学学姐', members: 25, capacity: 40, status: 'open' },
+                { id: 5, name: '考研部', owner: '考研导师', members: 15, capacity: 30, status: 'closed' },
+                { id: 6, name: '阅读室', owner: '图书管理员', members: 8, capacity: 20, status: 'open' }
+            ],
+            logs: [
+                { time: '2024-05-15 09:30:00', operator: 'admin', role: '管理员', type: 'login', target: '系统', detail: '管理员登录系统' },
+                { time: '2024-05-15 08:15:00', operator: 'admin', role: '管理员', type: 'disable', target: '违规用户A', detail: '禁用用户账号：违规发言' },
+                { time: '2024-05-14 22:00:00', operator: 'admin', role: '管理员', type: 'room_close', target: '考研部', detail: '管理员关闭自习室' },
+                { time: '2024-05-14 16:45:00', operator: 'admin', role: '管理员', type: 'enable', target: 'test_user', detail: '解禁用户账号' },
+                { time: '2024-05-14 10:20:00', operator: 'admin', role: '管理员', type: 'login', target: '系统', detail: '管理员登录系统' },
+                { time: '2024-05-13 14:30:00', operator: 'admin', role: '管理员', type: 'disable', target: 'test_user', detail: '禁用用户账号：测试账号' },
+                { time: '2024-05-13 09:00:00', operator: 'admin', role: '管理员', type: 'room_open', target: '阅读室', detail: '管理员开启自习室' }
+            ]
+        };
+
+        let adminChartInstance = null;
+
+        function checkSensitiveWord(text) {
+            if (!text) return false;
+            const sensitiveWords = ['cnm'];
+            const lowerText = text.toLowerCase();
+            for (let word of sensitiveWords) {
+                if (lowerText.includes(word)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function showSensitiveModal() {
+            document.getElementById('sensitive-modal').classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            showPage('login');
+            
+            // 设置创建自习室截止时间的最小值为当前时间+1小时
+            const endTimeInput = document.getElementById('room-end-time');
+            if (endTimeInput) {
+                const now = new Date();
+                const minTime = new Date(now.getTime() + 60 * 60 * 1000);
+                const year = minTime.getFullYear();
+                const month = String(minTime.getMonth() + 1).padStart(2, '0');
+                const day = String(minTime.getDate()).padStart(2, '0');
+                const hours = String(minTime.getHours()).padStart(2, '0');
+                const minutes = String(minTime.getMinutes()).padStart(2, '0');
+                endTimeInput.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+            
+            document.querySelectorAll('.nav-link, [data-page]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    if (page) {
+                        showPage(page);
+                    }
+                });
+            });
+            
+            document.getElementById('user-menu-button').addEventListener('click', function() {
+                const dropdown = document.getElementById('user-dropdown');
+                dropdown.classList.toggle('hidden');
+            });
+            
+            document.addEventListener('click', function(e) {
+                const userMenu = document.getElementById('user-menu');
+                if (!userMenu.contains(e.target)) {
+                    document.getElementById('user-dropdown').classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('mobile-menu-button').addEventListener('click', function() {
+                const mobileMenu = document.getElementById('mobile-menu');
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            document.getElementById('terms-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('terms-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('privacy-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('privacy-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('close-terms-btn').addEventListener('click', function() {
+                document.getElementById('terms-modal').classList.add('hidden');
+            });
+
+            document.getElementById('close-privacy-btn').addEventListener('click', function() {
+                document.getElementById('privacy-modal').classList.add('hidden');
+            });
+
+            document.getElementById('terms-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('privacy-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const phone = document.getElementById('phone').value;
+                const disabledUser = adminMockData.users.find(u => u.phone === phone && u.status === 'disabled');
+                if (disabledUser) {
+                    showDisabledModal();
+                    return;
+                }
+                if(phone === '11111111111') {
+                    showDisabledModal();
+                    return;
+                }
+                showPage('home');
+            });
+            
+            document.getElementById('register-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const nickname = document.getElementById('reg-nickname').value;
+                if (checkSensitiveWord(nickname)) {
+                    showSensitiveModal();
+                    return;
+                }
+                alert('注册成功！请登录');
+                showPage('login');
+            });
+            
+            document.getElementById('go-to-register').addEventListener('click', function(e) {
+                e.preventDefault();
+                showPage('register');
+            });
+            
+            document.getElementById('go-to-login').addEventListener('click', function(e) {
+                e.preventDefault();
+                showPage('login');
+            });
+            
+            document.getElementById('toggle-password').addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            });
+            
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                showPage('login');
+            });
+            
+            document.querySelectorAll('#create-room-btn, #create-room-btn-2').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('create-room-modal').classList.remove('hidden');
+                });
+            });
+            
+            document.getElementById('cancel-create-room-btn').addEventListener('click', function() {
+                document.getElementById('create-room-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('create-room-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('room-name').value;
+                const desc = document.getElementById('room-description').value;
+                if (checkSensitiveWord(name) || checkSensitiveWord(desc)) {
+                    showSensitiveModal();
+                    return;
+                }
+                
+                const capacity = parseInt(document.getElementById('room-capacity').value);
+                if (isNaN(capacity) || capacity < 1 || capacity > 50) {
+                    alert('创建失败：房间容量必须在1-50人之间！');
+                    return;
+                }
+                
+                const endTimeVal = document.getElementById('room-end-time').value;
+                if (!endTimeVal) {
+                    alert('创建失败：请设置开放截止时间！');
+                    return;
+                }
+                const endTime = new Date(endTimeVal);
+                const minAllowed = new Date(Date.now() + 60 * 60 * 1000);
+                if (endTime < minAllowed) {
+                    alert('创建失败：开放截止时间必须至少比当前时间晚1小时！');
+                    return;
+                }
+                
+                alert('自习室创建成功！');
+                document.getElementById('create-room-modal').classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.join-room-btn, [data-room-id]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if(isStudying) {
+                        document.getElementById('duplicate-session-modal').classList.remove('hidden');
+                        return;
+                    }
+                    const roomId = this.getAttribute('data-room-id');
+                    const room = adminMockData.rooms.find(r => r.id == roomId);
+                    if (room && room.status === 'closed') {
+                        return;
+                    }
+                    if (roomId) {
+                        showPage('room-detail');
+                        loadRoomData(roomId);
+                    }
+                });
+            });
+            
+            document.getElementById('back-to-rooms').addEventListener('click', function() {
+                showPage('study-rooms');
+            });
+            
+            document.getElementById('start-study-btn').addEventListener('click', function() {
+                if (selectedSeat) {
+                    isStudying = true;
+                    totalSessionTime = 0;
+                    pomodoroTime = 25 * 60;
+                    pomodoroCount = 0;
+                    timerMode = 'normal';
+                    isPaused = false;
+                    isBreak = false;
+                    selectedEmotion = '平静';
+                    
+                    updateTotalTimerDisplay();
+                    updatePomodoroDisplay();
+                    updatePomodoroCircle();
+                    updatePomodoroCount();
+                    showTimerSection('normal');
+                    
+                    document.querySelectorAll('.modal-emotion-btn').forEach(b => {
+                        b.classList.remove('bg-primary/10', 'border-2', 'border-primary');
+                    });
+                    document.querySelector('.modal-emotion-btn[data-emotion="平静"]').classList.add('bg-primary/10', 'border-2', 'border-primary');
+                    
+                    showPage('study-timer');
+                    startTimer();
+                }
+            });
+            
+            document.getElementById('pause-timer-btn').addEventListener('click', function() {
+                if (isBreak) return;
+                
+                if (isPaused) {
+                    isPaused = false;
+                    this.innerHTML = '<i class="fa fa-pause mr-2"></i> 暂停';
+                    startTimer();
+                } else {
+                    isPaused = true;
+                    clearInterval(timerInterval);
+                    this.innerHTML = '<i class="fa fa-play mr-2"></i> 继续';
+                }
+            });
+            
+            document.getElementById('take-break-btn').addEventListener('click', function() {
+                if (isBreak) return;
+                clearInterval(timerInterval);
+                isBreak = true;
+                document.getElementById('break-modal').classList.remove('hidden');
+                startBreakTimer();
+            });
+            
+            document.getElementById('end-study-btn').addEventListener('click', function() {
+                if (isBreak) return;
+                const content = document.getElementById('study-content').value;
+                if (checkSensitiveWord(content)) {
+                    showSensitiveModal();
+                    return;
+                }
+                if (totalSessionTime < 10 * 60) {
+                    clearInterval(timerInterval);
+                    isPaused = true;
+                    document.getElementById('pause-timer-btn').innerHTML = '<i class="fa fa-play mr-2"></i> 继续';
+                    document.getElementById('short-session-modal').classList.remove('hidden');
+                } else {
+                    clearInterval(timerInterval);
+                    document.getElementById('emotion-modal').classList.remove('hidden');
+                }
+            });
+            
+            document.getElementById('mode-normal-btn').addEventListener('click', function() {
+                if (timerMode === 'normal') return;
+                
+                if (timerMode === 'pomodoro' && pomodoroTime > 0 && pomodoroTime < 25 * 60) {
+                    document.getElementById('end-pomodoro-modal').classList.remove('hidden');
+                } else {
+                    timerMode = 'normal';
+                    showTimerSection('normal');
+                }
+            });
+            
+            document.getElementById('mode-pomodoro-btn').addEventListener('click', function() {
+                if (timerMode === 'pomodoro') return;
+                timerMode = 'pomodoro';
+                if (pomodoroTime <= 0 || pomodoroTime === 25 * 60) {
+                    pomodoroTime = 25 * 60;
+                }
+                updatePomodoroDisplay();
+                updatePomodoroCircle();
+                showTimerSection('pomodoro');
+            });
+            
+            document.getElementById('confirm-end-pomodoro').addEventListener('click', function() {
+                document.getElementById('end-pomodoro-modal').classList.add('hidden');
+                timerMode = 'normal';
+                pomodoroTime = 0;
+                updatePomodoroDisplay();
+                updatePomodoroCircle();
+                showTimerSection('normal');
+            });
+            
+            document.getElementById('cancel-end-pomodoro').addEventListener('click', function() {
+                document.getElementById('end-pomodoro-modal').classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.modal-emotion-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.modal-emotion-btn').forEach(b => {
+                        b.classList.remove('bg-primary/10', 'border-2', 'border-primary');
+                    });
+                    this.classList.add('bg-primary/10', 'border-2', 'border-primary');
+                    selectedEmotion = this.getAttribute('data-emotion');
+                });
+            });
+            
+            document.getElementById('submit-emotion-btn').addEventListener('click', function() {
+                const note = document.getElementById('emotion-note').value;
+                if (checkSensitiveWord(note)) {
+                    showSensitiveModal();
+                    return;
+                }
+                if (!selectedEmotion) selectedEmotion = '平静';
+                document.getElementById('emotion-modal').classList.add('hidden');
+                
+                const feedbackMap = {
+                    '平静': '今天的你也辛苦了！完成了专注学习，非常棒！闭上眼睛，做10次深呼吸，想象压力随呼气离开身体。保持自己的节奏，明天继续加油。',
+                    '自豪': '你真棒！完成了学习目标，这份成就感值得被记住！继续保持，你正在变得越来越优秀。',
+                    '满足': '满足于当下的进步，这是最好的学习状态。享受这份充实感，然后带着轻松的心情休息吧。',
+                    '快乐': '学习让你感到快乐，这是最棒的事情！带着这份愉悦的心情，好好奖励自己一下吧。',
+                    '疲惫': '感觉到疲惫是正常的，说明你真的投入了。好好休息一下，听听轻音乐，给自己泡杯热茶。',
+                    '焦虑': '感到焦虑时，试着把注意力放在呼吸上。你已经做得很好了，一步一个脚印，不必着急。',
+                    '难过': '没关系，每个人都有低落的时候。允许自己难过一会儿，然后记得你并不孤单，明天会更好的。',
+                    '自定义': '每一种情绪都值得被接纳。感谢你今天坚持学习，请好好照顾自己。'
+                };
+                document.getElementById('ai-feedback-text').textContent = feedbackMap[selectedEmotion] || feedbackMap['平静'];
+                
+                setTimeout(() => {
+                    document.getElementById('ai-feedback-modal').classList.remove('hidden');
+                }, 500);
+            });
+            
+            document.getElementById('close-ai-feedback-btn').addEventListener('click', function() {
+                document.getElementById('ai-feedback-modal').classList.add('hidden');
+                isStudying = false;
+                selectedSeat = null;
+                showPage('home');
+            });
+            
+            document.getElementById('end-break-btn').addEventListener('click', function() {
+                clearInterval(breakInterval);
+                document.getElementById('break-modal').classList.add('hidden');
+                isBreak = false;
+                
+                if (timerMode === 'pomodoro' && pomodoroTime === 0) {
+                    pomodoroTime = 25 * 60;
+                    updatePomodoroDisplay();
+                    updatePomodoroCircle();
+                }
+                
+                isPaused = false;
+                document.getElementById('pause-timer-btn').innerHTML = '<i class="fa fa-pause mr-2"></i> 暂停';
+                startTimer();
+            });
+            
+            document.getElementById('extend-break-btn').addEventListener('click', function() {
+                breakTime += 5 * 60;
+                updateBreakTimerDisplay();
+            });
+            
+            document.getElementById('confirm-end-short-btn').addEventListener('click', function() {
+                document.getElementById('short-session-modal').classList.add('hidden');
+                isStudying = false;
+                selectedSeat = null;
+                clearInterval(timerInterval);
+                clearInterval(breakInterval);
+                showPage('home');
+            });
+            
+            document.getElementById('continue-study-btn').addEventListener('click', function() {
+                document.getElementById('short-session-modal').classList.add('hidden');
+                isPaused = false;
+                document.getElementById('pause-timer-btn').innerHTML = '<i class="fa fa-pause mr-2"></i> 暂停';
+                startTimer();
+            });
+            
+            document.getElementById('close-duplicate-modal').addEventListener('click', function() {
+                document.getElementById('duplicate-session-modal').classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.stats-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.stats-tab').forEach(t => {
+                        t.classList.remove('bg-primary', 'text-white');
+                        t.classList.add('bg-white', 'text-gray-700');
+                    });
+                    this.classList.remove('bg-white', 'text-gray-700');
+                    this.classList.add('bg-primary', 'text-white');
+                    
+                    updateCharts(this.getAttribute('data-period'));
+                });
+            });
+            
+            initCharts();
+            generateCalendar();
+
+            document.getElementById('admin-login-toggle').addEventListener('click', function() {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('admin-login-form').classList.remove('hidden');
+                document.getElementById('user-register-link').classList.add('hidden');
+            });
+
+            document.getElementById('back-to-user-login').addEventListener('click', function() {
+                document.getElementById('admin-login-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('user-register-link').classList.remove('hidden');
+            });
+
+            document.getElementById('admin-login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const account = document.getElementById('admin-account').value.trim();
+                const password = document.getElementById('admin-password').value;
+                
+                if (account === 'admin' && password === 'admin1234') {
+                    isAdmin = true;
+                    showPage('admin');
+                    renderAdminDashboard();
+                    renderAdminUsers();
+                    renderAdminRooms();
+                    renderAdminLogs();
+                } else {
+                    alert('管理员账号或密码错误！');
+                }
+            });
+
+            document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tab = this.getAttribute('data-tab');
+                    
+                    document.querySelectorAll('.admin-nav-btn').forEach(b => {
+                        b.classList.remove('bg-white/10', 'text-white');
+                        b.classList.add('text-gray-300');
+                    });
+                    this.classList.remove('text-gray-300');
+                    this.classList.add('bg-white/10', 'text-white');
+                    
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.add('hidden'));
+                    document.getElementById('admin-tab-' + tab).classList.remove('hidden');
+                    
+                    if (tab === 'dashboard' && !adminChartInstance) {
+                        initAdminChart();
+                    }
+                });
+            });
+
+            document.getElementById('admin-logout-btn').addEventListener('click', function() {
+                isAdmin = false;
+                showPage('login');
+            });
+
+            document.getElementById('admin-search-btn').addEventListener('click', function() {
+                const text = document.getElementById('admin-user-search').value.trim();
+                renderAdminUsers(text);
+            });
+
+            document.getElementById('admin-log-filter').addEventListener('click', function() {
+                const type = document.getElementById('admin-log-type').value;
+                const date = document.getElementById('admin-log-date').value;
+                renderAdminLogs(type, date);
+            });
+
+            document.getElementById('close-disabled-modal').addEventListener('click', function() {
+                document.getElementById('disabled-modal').classList.add('hidden');
+            });
+
+            document.getElementById('disabled-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('edit-profile-btn').addEventListener('click', function() {
+                document.getElementById('edit-profile-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('cancel-edit-profile-btn').addEventListener('click', function() {
+                document.getElementById('edit-profile-modal').classList.add('hidden');
+                document.getElementById('avatar-error').classList.add('hidden');
+            });
+
+            document.getElementById('edit-avatar-input').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const errorEl = document.getElementById('avatar-error');
+                if(!file) return;
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+                if(!validTypes.includes(file.type)) {
+                    errorEl.textContent = '仅支持 JPG/PNG 格式的图片';
+                    errorEl.classList.remove('hidden');
+                    e.target.value = '';
+                    return;
+                }
+                if(file.size > 3 * 1024 * 1024) {
+                    errorEl.textContent = '文件大小不能超过 3MB';
+                    errorEl.classList.remove('hidden');
+                    e.target.value = '';
+                    return;
+                }
+                errorEl.classList.add('hidden');
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('edit-avatar-preview').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('edit-profile-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const newNickname = document.getElementById('edit-nickname').value.trim();
+                if (checkSensitiveWord(newNickname)) {
+                    showSensitiveModal();
+                    return;
+                }
+                if(!newNickname) {
+                    alert('昵称不能为空');
+                    return;
+                }
+                const newAvatarSrc = document.getElementById('edit-avatar-preview').src;
+                document.querySelector('#profile-page img[alt="用户头像"]').src = newAvatarSrc;
+                document.querySelector('#home-page h2').innerHTML = '你好，' + newNickname + ' <span class="animate-bounce-slow inline-block">👋</span>';
+                document.getElementById('profile-nickname').value = newNickname;
+                const userMenuName = document.querySelector('#user-menu-button span');
+                if(userMenuName) userMenuName.textContent = newNickname;
+                document.querySelector('#profile-page h3').textContent = newNickname;
+                document.getElementById('edit-profile-modal').classList.add('hidden');
+                document.getElementById('profile-success-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('profile-basic-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const newNickname = document.getElementById('profile-nickname').value.trim();
+                const bio = document.getElementById('profile-bio').value;
+                if (checkSensitiveWord(newNickname) || checkSensitiveWord(bio)) {
+                    showSensitiveModal();
+                    return;
+                }
+                if(!newNickname) {
+                    alert('昵称不能为空');
+                    return;
+                }
+                document.querySelector('#home-page h2').innerHTML = '你好，' + newNickname + ' <span class="animate-bounce-slow inline-block">👋</span>';
+                const userMenuName = document.querySelector('#user-menu-button span');
+                if(userMenuName) userMenuName.textContent = newNickname;
+                document.querySelector('#profile-page h3').textContent = newNickname;
+                document.getElementById('profile-success-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('close-profile-success-btn').addEventListener('click', function() {
+                document.getElementById('profile-success-modal').classList.add('hidden');
+            });
+
+            document.getElementById('edit-profile-modal').addEventListener('click', function(e) {
+                if(e.target === this) {
+                    this.classList.add('hidden');
+                    document.getElementById('avatar-error').classList.add('hidden');
+                }
+            });
+
+            document.getElementById('close-sensitive-btn').addEventListener('click', function() {
+                document.getElementById('sensitive-modal').classList.add('hidden');
+            });
+
+            document.getElementById('sensitive-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+            window.addEventListener('scroll', function() {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 10) {
+                    navbar.classList.add('shadow-md');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                }
+            });
+        });
+
+        function showDisabledModal() {
+            document.getElementById('disabled-modal').classList.remove('hidden');
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(pageName + '-page');
+            if (target) target.classList.remove('hidden');
+            
+            if (pageName === 'login' || pageName === 'register' || pageName === 'admin' || pageName === 'study-timer') {
+                document.getElementById('navbar').classList.add('hidden');
+            } else {
+                document.getElementById('navbar').classList.remove('hidden');
+            }
+            
+            if (pageName !== 'login' && pageName !== 'register' && pageName !== 'admin' && pageName !== 'study-timer') {
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('text-primary', 'font-medium');
+                    link.classList.add('text-gray-600');
+                    
+                    if (link.getAttribute('data-page') === pageName) {
+                        link.classList.remove('text-gray-600');
+                        link.classList.add('text-primary', 'font-medium');
+                    }
+                });
+            }
+            
+            document.getElementById('mobile-menu').classList.add('hidden');
+            document.getElementById('user-dropdown').classList.add('hidden');
+            
+            currentPage = pageName;
+            
+            if (pageName === 'room-detail') {
+                generateSeats();
+                generateMemberList();
+            }
+        }
+
+        function loadRoomData(roomId) {
+            const rooms = {
+                '1': { title: '小学部', description: '静心学习，快乐成长', members: 32, capacity: 50 },
+                '2': { title: '初中部', description: '专注学习，共同进步', members: 18, capacity: 30 },
+                '3': { title: '高中部', description: '埋头苦读，一起努力', members: 12, capacity: 20 },
+                '4': { title: '大学部', description: '自主学习，互相督促', members: 25, capacity: 40 },
+                '5': { title: '考研部', description: '考研路上，并肩作战', members: 15, capacity: 30 },
+                '6': { title: '阅读室', description: '静心阅读，享受书香', members: 8, capacity: 20 }
+            };
+            
+            const room = rooms[roomId] || rooms['1'];
+            
+            document.getElementById('room-title').textContent = room.title;
+            document.getElementById('room-description').textContent = room.description;
+            document.getElementById('room-members').textContent = room.members;
+            document.getElementById('member-count').textContent = room.members;
+            document.getElementById('current-room-name').textContent = room.title;
+        }
+
+        function generateSeats() {
+            const seatGrid = document.getElementById('seat-grid');
+            seatGrid.innerHTML = '';
+            
+            const rows = 5;
+            const cols = 5;
+            const totalSeats = rows * cols;
+            
+            const occupiedSeats = new Set();
+            while (occupiedSeats.size < 20) {
+                occupiedSeats.add(Math.floor(Math.random() * totalSeats));
+            }
+            
+            const avatars = [64, 91, 26, 42, 1005, 823, 366, 65];
+            
+            for (let i = 0; i < totalSeats; i++) {
+                const seat = document.createElement('div');
+                const row = Math.floor(i / cols) + 1;
+                const col = String.fromCharCode(65 + (i % cols));
+                const seatNumber = col + '-' + row;
+                
+                seat.className = 'seat h-12 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all';
+                
+                if (occupiedSeats.has(i)) {
+                    seat.classList.add('seat-occupied', 'cursor-not-allowed', 'relative');
+                    const randomAvatar = avatars[i % avatars.length];
+                    seat.innerHTML = `
+                        <span class="absolute top-0.5 left-1 text-[10px] text-gray-500">${seatNumber}</span>
+                        <img src="https://picsum.photos/id/${randomAvatar}/100/100" alt="用户头像" class="w-6 h-6 rounded-full border border-red-200 mt-2 shadow-sm">
+                    `;
+                } else {
+                    seat.classList.add('seat-available', 'cursor-pointer', 'hover:scale-105');
+                    seat.textContent = seatNumber;
+                    
+                    seat.addEventListener('click', function() {
+                        document.querySelectorAll('.seat-selected').forEach(s => {
+                            s.classList.remove('seat-selected');
+                            s.classList.add('seat-available');
+                        });
+                        
+                        this.classList.remove('seat-available');
+                        this.classList.add('seat-selected');
+                        selectedSeat = seatNumber;
+                        
+                        document.getElementById('current-seat-number').textContent = seatNumber;
+                        document.getElementById('start-study-btn').disabled = false;
+                    });
+                }
+                
+                seatGrid.appendChild(seat);
+            }
+        }
+
+        function generateMemberList() {
+            const memberList = document.getElementById('member-list');
+            memberList.innerHTML = '';
+            
+            const members = [
+                { name: '小学老师', avatar: '64', isOwner: true },
+                { name: '努力学习', avatar: '91' },
+                { name: '学霸养成', avatar: '26' },
+                { name: '早起鸟', avatar: '42' },
+                { name: '追梦人', avatar: '1005' },
+                { name: '坚持就是胜利', avatar: '823' },
+                { name: '学习使我快乐', avatar: '366' },
+                { name: '未来可期', avatar: '65' }
+            ];
+            
+            members.forEach(member => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors';
+                
+                memberItem.innerHTML = `
+                    <img src="https://picsum.photos/id/${member.avatar}/100/100" alt="${member.name}" class="w-8 h-8 rounded-full object-cover mr-3">
+                    <span class="text-sm">${member.name}</span>
+                    ${member.isOwner ? '<span class="ml-auto bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">房主</span>' : ''}
+                `;
+                
+                memberList.appendChild(memberItem);
+            });
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('pause-timer-btn').innerHTML = '<i class="fa fa-pause mr-2"></i> 暂停';
+            
+            timerInterval = setInterval(() => {
+                if (!isPaused && !isBreak) {
+                    totalSessionTime++;
+                    updateTotalTimerDisplay();
+                    
+                    if (timerMode === 'pomodoro') {
+                        if (pomodoroTime > 0) {
+                            pomodoroTime--;
+                            updatePomodoroDisplay();
+                            updatePomodoroCircle();
+                        } else {
+                            pomodoroCount++;
+                            updatePomodoroCount();
+                            isBreak = true;
+                            clearInterval(timerInterval);
+                            document.getElementById('break-modal').classList.remove('hidden');
+                            startBreakTimer();
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTotalTimerDisplay() {
+            const h = Math.floor(totalSessionTime / 3600);
+            const m = Math.floor((totalSessionTime % 3600) / 60);
+            const s = totalSessionTime % 60;
+            document.getElementById('total-timer-display').textContent = 
+                h.toString().padStart(2, '0') + ':' + 
+                m.toString().padStart(2, '0') + ':' + 
+                s.toString().padStart(2, '0');
+        }
+
+        function updatePomodoroDisplay() {
+            const minutes = Math.floor(pomodoroTime / 60);
+            const seconds = pomodoroTime % 60;
+            document.getElementById('pomodoro-timer-display').textContent = 
+                minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+        }
+
+        function updatePomodoroCircle() {
+            const circle = document.getElementById('timer-circle');
+            const totalTime = 25 * 60;
+            const progress = (totalTime - pomodoroTime) / totalTime;
+            const dashoffset = 283 * (1 - progress);
+            circle.style.strokeDashoffset = dashoffset;
+        }
+
+        function updatePomodoroCount() {
+            document.getElementById('pomodoro-count').textContent = pomodoroCount;
+        }
+
+        function showTimerSection(mode) {
+            if (mode === 'normal') {
+                document.getElementById('normal-timer-section').classList.remove('hidden');
+                document.getElementById('pomodoro-timer-section').classList.add('hidden');
+                document.getElementById('pomodoro-round-badge').classList.add('hidden');
+                document.getElementById('mode-normal-btn').classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                document.getElementById('mode-normal-btn').classList.add('bg-primary', 'text-white');
+                document.getElementById('mode-pomodoro-btn').classList.remove('bg-primary', 'text-white');
+                document.getElementById('mode-pomodoro-btn').classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            } else {
+                document.getElementById('normal-timer-section').classList.add('hidden');
+                document.getElementById('pomodoro-timer-section').classList.remove('hidden');
+                document.getElementById('pomodoro-round-badge').classList.remove('hidden');
+                document.getElementById('mode-pomodoro-btn').classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                document.getElementById('mode-pomodoro-btn').classList.add('bg-primary', 'text-white');
+                document.getElementById('mode-normal-btn').classList.remove('bg-primary', 'text-white');
+                document.getElementById('mode-normal-btn').classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            }
+        }
+
+        function startBreakTimer() {
+            clearInterval(breakInterval);
+            breakTime = 5 * 60;
+            updateBreakTimerDisplay();
+            
+            breakInterval = setInterval(() => {
+                if (breakTime > 0) {
+                    breakTime--;
+                    updateBreakTimerDisplay();
+                } else {
+                    clearInterval(breakInterval);
+                    document.getElementById('break-modal').classList.add('hidden');
+                    isBreak = false;
+                    
+                    if (timerMode === 'pomodoro' && pomodoroTime === 0) {
+                        pomodoroTime = 25 * 60;
+                        updatePomodoroDisplay();
+                        updatePomodoroCircle();
+                    }
+                    
+                    isPaused = false;
+                    document.getElementById('pause-timer-btn').innerHTML = '<i class="fa fa-pause mr-2"></i> 暂停';
+                    startTimer();
+                }
+            }, 1000);
+        }
+
+        function updateBreakTimerDisplay() {
+            const minutes = Math.floor(breakTime / 60);
+            const seconds = breakTime % 60;
+            document.getElementById('break-timer').textContent = 
+                minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+        }
+
+        function initCharts() {
+            const studyTimeCtx = document.getElementById('study-time-chart').getContext('2d');
+            window.studyTimeChart = new Chart(studyTimeCtx, {
+                type: 'line',
+                data: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    datasets: [{
+                        label: '学习时长(小时)',
+                        data: [3.2, 4.5, 3.8, 5.2, 4.0, 6.1, 1.7],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'h';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const emotionCtx = document.getElementById('emotion-chart').getContext('2d');
+            window.emotionChart = new Chart(emotionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    datasets: [{
+                        label: '情绪指数',
+                        data: [0, 1, 0, 2, 4, 3, 0],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: ['#10b981', '#10b981', '#10b981', '#10b981', '#f59e0b', '#10b981', '#10b981'],
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 6,
+                            ticks: {
+                                callback: function(value) {
+                                    const emotions = ['平静', '自豪', '满足', '快乐', '焦虑', '疲惫', '难过'];
+                                    return emotions[value] || '';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(period) {
+            let studyData, emotionData, labels;
+            let emotionText = '平静';
+            let emotionEmoji = '😊';
+            
+            if (period === 'week') {
+                labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                studyData = [3.2, 4.5, 3.8, 5.2, 4.0, 6.1, 1.7];
+                emotionData = [0, 1, 0, 2, 4, 3, 0];
+                emotionText = '平静';
+                emotionEmoji = '😊';
+            } else if (period === 'month') {
+                labels = ['第1周', '第2周', '第3周', '第4周'];
+                studyData = [22.5, 25.3, 28.1, 26.7];
+                emotionData = [1, 0, 2, 1];
+                emotionText = '自豪';
+                emotionEmoji = '😎';
+            } else {
+                labels = ['1月', '2月', '3月', '4月', '5月', '6月'];
+                studyData = [85, 92, 105, 98, 112, 126];
+                emotionData = [0, 1, 0, 2, 1, 0];
+                emotionText = '平静';
+                emotionEmoji = '😊';
+            }
+            
+            document.getElementById('dominant-emotion-text').textContent = emotionText;
+            document.getElementById('dominant-emotion-emoji').textContent = emotionEmoji;
+            document.getElementById('dominant-emotion-desc').textContent = '这段时间内你常感到' + emotionText + '。';
+
+            window.studyTimeChart.data.labels = labels;
+            window.studyTimeChart.data.datasets[0].data = studyData;
+            window.studyTimeChart.update();
+            
+            window.emotionChart.data.labels = labels;
+            window.emotionChart.data.datasets[0].data = emotionData;
+            window.emotionChart.update();
+        }
+
+        function generateCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            calendarGrid.innerHTML = '';
+
+            const daysOfWeek = ['日', '一', '二', '三', '四', '五', '六'];
+
+            daysOfWeek.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'text-center text-sm font-medium text-gray-500 py-2';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'h-10';
+                calendarGrid.appendChild(emptyDay);
+            }
+
+            const uncheckedDays = new Set([5, 12]);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'h-10 flex items-center justify-center rounded text-sm';
+
+                if (day === today.getDate()) {
+                    dayElement.classList.add('bg-primary', 'text-white', 'font-medium');
+                } else if (day < today.getDate() && !uncheckedDays.has(day)) {
+                    dayElement.classList.add('bg-success', 'text-white');
+                } else {
+                    dayElement.classList.add('bg-gray-200', 'text-gray-600');
+                }
+
+                dayElement.textContent = day;
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        function renderAdminDashboard() {
+            document.getElementById('admin-stat-online').textContent = '128';
+            document.getElementById('admin-stat-new').textContent = '23';
+            document.getElementById('admin-stat-checkin').textContent = '456';
+            document.getElementById('admin-stat-rooms').textContent = adminMockData.rooms.length;
+            const closedCount = adminMockData.rooms.filter(r => r.status === 'closed').length;
+            document.getElementById('admin-stat-closed').textContent = closedCount;
+        }
+
+        function initAdminChart() {
+            const ctx = document.getElementById('admin-active-chart').getContext('2d');
+            adminChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['05-09', '05-10', '05-11', '05-12', '05-13', '05-14', '05-15'],
+                    datasets: [{
+                        label: '活跃用户数',
+                        data: [95, 102, 118, 110, 125, 115, 128],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: false, ticks: { callback: v => v + '人' } }
+                    }
+                }
+            });
+        }
+
+        function renderAdminUsers(filterText) {
+            const tbody = document.getElementById('admin-user-table');
+            tbody.innerHTML = '';
+            
+            const filtered = adminMockData.users.filter(u => {
+                if (!filterText) return true;
+                return u.nickname.includes(filterText) || u.phone.includes(filterText);
+            });
+            
+            filtered.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50 transition-colors';
+                const statusClass = u.status === 'active' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger';
+                const statusText = u.status === 'active' ? '正常' : '已禁用';
+                const btnClass = u.status === 'active' ? 'bg-danger text-white hover:bg-danger/90' : 'bg-success text-white hover:bg-success/90';
+                const btnText = u.status === 'active' ? '禁用' : '解禁';
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <img src="https://picsum.photos/id/${u.avatar}/100/100" class="w-8 h-8 rounded-full mr-3 object-cover">
+                            <span class="font-medium">${u.nickname}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-gray-600">${u.phone}</td>
+                    <td class="py-3 px-4 text-gray-600">${u.registerTime}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${statusClass}">${statusText}</span></td>
+                    <td class="py-3 px-4">
+                        <button class="px-3 py-1 rounded-lg text-xs transition-colors admin-toggle-user ${btnClass}" data-id="${u.id}">
+                            ${btnText}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.querySelectorAll('.admin-toggle-user').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const user = adminMockData.users.find(u => u.id === id);
+                    if (user) {
+                        const newStatus = user.status === 'active' ? 'disabled' : 'active';
+                        const actionType = newStatus === 'disabled' ? 'disable' : 'enable';
+                        user.status = newStatus;
+                        
+                        adminMockData.logs.unshift({
+                            time: new Date().toISOString().slice(0,19).replace('T',' '),
+                            operator: 'admin',
+                            role: '管理员',
+                            type: actionType,
+                            target: user.nickname,
+                            detail: (newStatus === 'disabled' ? '禁用' : '解禁') + '用户账号：' + user.nickname
+                        });
+                        
+                        alert('已' + (newStatus === 'disabled' ? '禁用' : '解禁') + '用户：' + user.nickname);
+                        renderAdminUsers(filterText);
+                        renderAdminLogs();
+                    }
+                });
+            });
+        }
+
+        function renderAdminRooms() {
+            const tbody = document.getElementById('admin-room-table');
+            tbody.innerHTML = '';
+            
+            adminMockData.rooms.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50 transition-colors';
+                const statusClass = r.status === 'open' ? 'bg-success/10 text-success' : 'bg-gray-200 text-gray-600';
+                const statusText = r.status === 'open' ? '开放中' : '已关闭';
+                const btnClass = r.status === 'open' ? 'bg-warning text-white hover:bg-warning/90' : 'bg-success text-white hover:bg-success/90';
+                const btnText = r.status === 'open' ? '关闭' : '开启';
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium">${r.name}</td>
+                    <td class="py-3 px-4 text-gray-600">${r.owner}</td>
+                    <td class="py-3 px-4 text-gray-600">${r.members}/${r.capacity}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${statusClass}">${statusText}</span></td>
+                    <td class="py-3 px-4">
+                        <button class="px-3 py-1 rounded-lg text-xs transition-colors admin-toggle-room ${btnClass}" data-id="${r.id}">
+                            ${btnText}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.querySelectorAll('.admin-toggle-room').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const room = adminMockData.rooms.find(r => r.id === id);
+                    if (room) {
+                        const newStatus = room.status === 'open' ? 'closed' : 'open';
+                        const actionType = newStatus === 'closed' ? 'room_close' : 'room_open';
+                        room.status = newStatus;
+                        
+                        adminMockData.logs.unshift({
+                            time: new Date().toISOString().slice(0,19).replace('T',' '),
+                            operator: 'admin',
+                            role: '管理员',
+                            type: actionType,
+                            target: room.name,
+                            detail: '管理员' + (newStatus === 'closed' ? '关闭' : '开启') + '自习室：' + room.name
+                        });
+                        
+                        alert('已' + (newStatus === 'closed' ? '关闭' : '开启') + '自习室：' + room.name);
+                        renderAdminRooms();
+                        renderAdminLogs();
+                        renderAdminDashboard();
+                    }
+                });
+            });
+        }
+
+        function renderAdminLogs(filterType, filterDate) {
+            const tbody = document.getElementById('admin-log-table');
+            tbody.innerHTML = '';
+            
+            const filtered = adminMockData.logs.filter(l => {
+                let match = true;
+                if (filterType && l.type !== filterType) match = false;
+                if (filterDate && !l.time.startsWith(filterDate)) match = false;
+                return match;
+            });
+            
+            const typeMap = {
+                'login': '登录',
+                'disable': '禁用用户',
+                'enable': '解禁用户',
+                'room_close': '关闭房间',
+                'room_open': '开启房间'
+            };
+            
+            filtered.forEach(l => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50 transition-colors';
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-gray-600">${l.time}</td>
+                    <td class="py-3 px-4 font-medium">${l.operator}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs">${typeMap[l.type] || l.type}</span></td>
+                    <td class="py-3 px-4 text-gray-600">${l.target}</td>
+                    <td class="py-3 px-4 text-gray-600">${l.detail}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>

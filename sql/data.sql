@@ -18,11 +18,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- =========================
 -- 用户初始化数据
--- 密码明文：123456
+-- 密码明文：abc12345
 -- =========================
 INSERT INTO `users` (`id`, `nickname`, `password_hash`, `phone`, `avatar_url`, `profile`, `status`, `created_at`, `updated_at`, `streak_days`)
-VALUES (1, '苹果树', '$2b$10$EsoxsQjGFpPkR3iRQQliGu2kPrG385OVxn8G0HcrhmNAj6Wvn4yEG', '13800000001', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user1', '今天也是元气满满的一天！', 'active', NOW(), NOW(), 5),
-        (2, '油橄榄', '$2b$10$EsoxsQjGFpPkR3iRQQliGu2kPrG385OVxn8G0HcrhmNAj6Wvn4yEG', '13800000002', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user2', '期末周求放过😭', 'active', NOW(), NOW(), 2);
+VALUES (1, '苹果树', '$2b$10$caFHhg08zWrpWRt6dPo25uWgXFJ5R4eJrZe6jNm6EyqFPPJAXhh.2', '13800000001', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user1', '今天也是元气满满的一天！', 'active', NOW(), NOW(), 5),
+        (2, '油橄榄', '$2b$10$caFHhg08zWrpWRt6dPo25uWgXFJ5R4eJrZe6jNm6EyqFPPJAXhh.2', '13800000002', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user2', '期末周求放过😭', 'active', NOW(), NOW(), 2);
 
 -- =========================
 -- 管理员初始化数据
