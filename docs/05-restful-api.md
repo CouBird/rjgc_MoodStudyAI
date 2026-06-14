@@ -172,6 +172,22 @@ Rust 后端建议按接口分离 Request/Response：
 
 返回当前登录用户信息。需用户 Token。
 
+返回：
+
+```json
+{
+  "userId": "10001",
+  "phone": "13800138000",
+  "nickname": "小明同学",
+  "avatarUrl": "/storage/avatars/avatar.png",
+  "profile": "考研党一枚，目标是上岸理想的大学！",
+  "role": "user",
+  "status": "active",
+  "streakDays": 7,
+  "createdAt": "2026-05-19T10:00:00Z"
+}
+```
+
 ### PATCH /users/me
 
 修改当前用户资料。
@@ -187,6 +203,8 @@ Rust 后端建议按接口分离 Request/Response：
 
 手机号不可修改。
 
+返回更新后的当前用户信息，字段同 `GET /users/me`。
+
 ### POST /users/me/avatar
 
 上传头像。multipart 字段建议为 file。
@@ -195,6 +213,25 @@ Rust 后端建议按接口分离 Request/Response：
 
 - JPG 或 PNG。
 - 不超过 3MB。
+
+返回：
+
+```json
+{
+  "avatarUrl": "/storage/avatars/uuid.png",
+  "user": {
+    "userId": "10001",
+    "phone": "13800138000",
+    "nickname": "小明同学",
+    "avatarUrl": "/storage/avatars/uuid.png",
+    "profile": "个人简介",
+    "role": "user",
+    "status": "active",
+    "streakDays": 7,
+    "createdAt": "2026-05-19T10:00:00Z"
+  }
+}
+```
 
 ### PATCH /users/me/password
 
@@ -212,9 +249,13 @@ Rust 后端建议按接口分离 Request/Response：
 
 必须先校验 currentPassword。
 
+成功返回 `data: null`。
+
 ### GET /users/me/stats/today
 
 今日学习概览。
+
+`streakDays` 口径：如果今天已打卡，返回截至今天的连续打卡天数；如果今天尚未打卡，返回截至昨天的连续打卡天数；如果昨天也未打卡，则返回 0。
 
 返回建议：
 

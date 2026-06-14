@@ -20,6 +20,8 @@ pub enum AppError {
     Unprocessable(String),
     #[error("locked: {0}")]
     Locked(String),
+    #[error("payload too large: {0}")]
+    PayloadTooLarge(String),
     #[error("database error: {0}")]
     Database(#[from] sqlx::Error),
     #[error("redis error: {0}")]
@@ -52,6 +54,7 @@ impl AppError {
             Self::Conflict(_) => StatusCode::CONFLICT,
             Self::Unprocessable(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Locked(_) => StatusCode::LOCKED,
+            Self::PayloadTooLarge(_) => StatusCode::PAYLOAD_TOO_LARGE,
             Self::Database(_) | Self::Redis(_) | Self::Io(_) | Self::Internal(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }

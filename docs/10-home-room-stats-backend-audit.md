@@ -129,3 +129,66 @@
 - 统计页周/月/年聚合、学习趋势、情绪趋势、主情绪摘要、打卡日历和环比增长。
 
 当前剩余的主要后端增强点是：敏感词过滤、真实 AI 反馈集成、成员加入/离开历史、番茄钟专门状态机，以及是否强制“结束学习后才能提交情绪”的产品规则。
+
+## 2026-06-10 个人中心补充核查
+
+本节为新增状态记录，只追加当前个人中心实现现况。
+
+### 已补齐后端逻辑
+
+| 功能 | API | 后端实现 | 数据库字段 |
+| --- | --- | --- | --- |
+| 当前用户资料扩展 | `GET /api/v1/users/me` | 已返回 `profile`、`streakDays`，个人中心资料卡可直接使用 | `users.profile`、`users.streak_days`、`users.avatar_url` |
+| 修改个人资料 | `PATCH /api/v1/users/me` | 已实现昵称和个人简介修改；手机号不可修改；昵称不能为空且不超过 20 字符，简介不超过 255 字符 | `users.nickname`、`users.profile`、`users.updated_at` |
+| 上传头像 | `POST /api/v1/users/me/avatar` | 已实现 multipart `file` 上传，限制 JPG/PNG 和最大 3MB；保存文件后更新用户头像地址 | `users.avatar_url` |
+| 静态头像访问 | `GET /storage/avatars/{filename}` | 已在应用层挂载头像目录，便于本地 HTML 页面直接显示上传后的头像 | `AVATAR_DIR` 配置 |
+| 修改密码 | `PATCH /api/v1/users/me/password` | 已校验当前密码，校验新密码不少于 8 位且包含字母和数字，更新 bcrypt 哈希 | `users.password_hash`、`users.updated_at` |
+
+### 已接入前端联调
+
+| 页面 | 当前状态 |
+| --- | --- |
+| `frontend/rooms-demo.html` | “个人中心”导航已从占位弹窗改为真实页面，支持资料展示、资料保存、头像上传、密码修改 |
+| 个人中心资料卡 | 展示头像、昵称、用户 ID、今日学习、连续打卡、今日心情 |
+| 个人资料表单 | 对接 `PATCH /api/v1/users/me` |
+| 头像上传 | 对接 `POST /api/v1/users/me/avatar`，本地 HTML 自动把 `/storage/avatars/...` 拼接为 `http://127.0.0.1:8080/storage/avatars/...` |
+| 修改密码 | 对接 `PATCH /api/v1/users/me/password` |
+
+### 主要源码
+
+| 文件 | 说明 |
+| --- | --- |
+| `backend/src/modules/users/routes.rs` | 新增个人资料、头像、密码路由 |
+| `backend/src/modules/users/handler.rs` | 解析 JSON/multipart 请求并返回统一响应 |
+| `backend/src/modules/users/service.rs` | 资料校验、头像保存编排、密码校验与哈希更新 |
+| `backend/src/modules/users/repository.rs` | 更新用户资料、头像地址、密码哈希 |
+| `backend/src/modules/users/dto.rs` | 新增资料修改、密码修改、头像上传响应 DTO |
+| `backend/src/storage.rs` | 头像文件校验与保存 |
+| `backend/src/app.rs` | 挂载 `/storage/avatars` 静态访问和上传体积限制 |
+| `frontend/rooms-demo.html` | 个人中心联调页面和接口调用 |
+| `backend/tests/auth_api_test.rs` | 覆盖资料修改和密码修改基本链路 |
+
+### 当前仍可增强
+
+| 增强点 | 说明 |
+| --- | --- |
+| 头像旧文件清理 | 当前上传新头像后不会自动删除旧头像文件 |
+| 更完整的图片校验 | 当前校验 MIME 和基础文件头，未做图片解码级校验 |
+| 前端正式工程化页面 | 当前仍是 HTML 联调页，后续如果引入 Vue/React，应把个人中心拆成正式组件 |
+
+## 2026-06-10 连续打卡口径补充
+
+连续打卡天数已统一为以下产品口径：
+
+- 今天已打卡时，`streakDays` 返回截至今天的连续打卡天数。
+- 今天未打卡时，`streakDays` 返回截至昨天的连续打卡天数。
+- 如果昨天也未打卡，`streakDays` 返回 0，不继续展示更早日期的历史连续记录。
+
+该口径同时适用于：
+
+| 使用位置 | 数据来源 |
+| --- | --- |
+| 首页今日概览 | `GET /api/v1/users/me/stats/today` 实时扫描 `checkin_records` |
+| 个人中心资料卡 | `GET /api/v1/users/me/stats/today` |
+| 当前用户信息缓存字段 | `GET /api/v1/users/me` 返回的 `users.streak_days` |
+| 补卡/有效学习结束后的缓存刷新 | `checkins::repository::recalculate_streak_days` |

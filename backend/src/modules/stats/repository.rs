@@ -54,9 +54,25 @@ pub async fn streak_days_as_of(
     .fetch_all(pool)
     .await?;
 
-    let mut expected = base_date;
+    Ok(calculate_streak_days(&dates, base_date))
+}
+
+fn calculate_streak_days(dates: &[NaiveDate], base_date: NaiveDate) -> i32 {
+    let Some(latest_date) = dates.first().copied() else {
+        return 0;
+    };
+
+    let yesterday = base_date.pred_opt();
+    let Some(mut expected) = (if latest_date == base_date {
+        Some(base_date)
+    } else {
+        yesterday.filter(|date| latest_date == *date)
+    }) else {
+        return 0;
+    };
+
     let mut streak = 0;
-    for date in dates {
+    for &date in dates {
         if date == expected {
             streak += 1;
             expected = match expected.pred_opt() {
@@ -68,7 +84,7 @@ pub async fn streak_days_as_of(
         }
     }
 
-    Ok(streak)
+    streak
 }
 
 pub async fn today_checkin_exists(

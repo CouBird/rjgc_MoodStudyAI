@@ -309,3 +309,100 @@ docs/11-team-collaboration-guide.md
 - [RESTful API 文档](docs/05-restful-api.md)
 - [首页、自习室、个人统计后端实现核查](docs/10-home-room-stats-backend-audit.md)
 - [团队协作说明文档](docs/11-team-collaboration-guide.md)
+
+## 2026-06-10 当前补充说明
+
+本节为当前开发状态的追加说明，不替代上文原有启动和协作说明。
+
+### 当前新增完成内容
+
+| 模块 | 当前补充状态 |
+| --- | --- |
+| 个人中心后端 | 已补齐 `PATCH /api/v1/users/me`、`POST /api/v1/users/me/avatar`、`PATCH /api/v1/users/me/password` |
+| 当前用户信息 | `GET /api/v1/users/me` 已返回 `profile`、`streakDays`，可直接支撑个人中心资料卡 |
+| 头像上传 | 支持 multipart 字段 `file`，限制 JPG/PNG 和 `MAX_AVATAR_BYTES`，保存到 `AVATAR_DIR` |
+| 静态头像访问 | 后端已挂载 `/storage/avatars/...`，前端从本地 HTML 打开时会拼接 `http://127.0.0.1:8080` |
+| 个人中心前端联调 | `frontend/rooms-demo.html` 的“个人中心”不再是占位弹窗，已接入查看资料、保存资料、上传头像、修改密码 |
+| 文档 | `docs/05-restful-api.md` 已追加个人资料、头像上传、修改密码的返回字段示例 |
+
+### Windows 本地启动补充
+
+如果 Rust 安装到了 D 盘，例如：
+
+```text
+D:\Rust\.cargo
+D:\Rust\.rustup
+```
+
+每次打开新的 PowerShell/Cursor 终端后，可以先执行：
+
+```powershell
+$env:CARGO_HOME = "D:\Rust\.cargo"
+$env:RUSTUP_HOME = "D:\Rust\.rustup"
+$env:Path = "D:\Rust\.cargo\bin;$env:Path"
+```
+
+然后再进入后端启动：
+
+```powershell
+cd d:\rjgc_MoodStudyAI\backend
+cargo run --target-dir target-run
+```
+
+如果已经编译过且没有改 Rust 代码，也可以直接运行已生成的可执行文件：
+
+```powershell
+cd d:\rjgc_MoodStudyAI\backend
+.\target-run\debug\backend.exe
+```
+
+### 手动初始化数据库补充
+
+如果不想安装 `sqlx-cli`，本地联调可以直接用 MySQL 执行原始 SQL：
+
+```sql
+CREATE DATABASE IF NOT EXISTS ai_study_room DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE ai_study_room;
+SOURCE D:/rjgc_MoodStudyAI/sql/schema.sql;
+SOURCE D:/rjgc_MoodStudyAI/sql/data.sql;
+```
+
+对应 `.env` 至少需要：
+
+```env
+DATABASE_ENABLED=true
+DATABASE_URL=mysql://root:你的MySQL密码@127.0.0.1:3306/ai_study_room
+REDIS_ENABLED=false
+AVATAR_DIR=storage/avatars
+MAX_AVATAR_BYTES=3145728
+```
+
+MySQL 服务名在当前本地环境中可能是 `mysql`，可用以下命令启动：
+
+```powershell
+net start mysql
+```
+
+如果服务名不同，可用 `services.msc` 或 `sc query state= all | findstr /I mysql` 查看实际服务名。
+
+### 当前联调入口
+
+后端启动成功后，终端会看到：
+
+```text
+backend listening on http://127.0.0.1:8080
+```
+
+健康检查：
+
+```text
+http://127.0.0.1:8080/health
+```
+
+前端联调页面：
+
+```text
+d:\rjgc_MoodStudyAI\frontend\rooms-demo.html
+```
+
+页面中可测试：首页、自习室、学习统计入口、个人中心资料编辑、头像上传和密码修改。后端运行期间不要关闭 `cargo run` 所在终端。

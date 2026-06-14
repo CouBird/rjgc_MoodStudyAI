@@ -211,3 +211,62 @@ backend/src/modules/*/repository.rs
 sql/schema.sql
 docs/10-home-room-stats-backend-audit.md
 ```
+
+## 2026-06-10 个人中心当前状态补充
+
+本节为当前实现状态的追加说明，不删除上文原有分工和协作规则。
+
+### 已完成内容
+
+| 内容 | 当前状态 | 相关位置 |
+| --- | --- | --- |
+| 个人中心页面 | `frontend/rooms-demo.html` 已有可联调个人中心页面，不再弹出“后续阶段实现” | `frontend/rooms-demo.html` |
+| 查看当前用户 | 已支持昵称、手机号、头像、简介、连续打卡天数 | `GET /api/v1/users/me` |
+| 修改资料 | 已支持修改昵称和个人简介，手机号不可修改 | `PATCH /api/v1/users/me` |
+| 上传头像 | 已支持 multipart `file` 上传 JPG/PNG，默认最大 3MB | `POST /api/v1/users/me/avatar` |
+| 修改密码 | 已支持校验当前密码并更新新密码 | `PATCH /api/v1/users/me/password` |
+| 今日概览 | 个人中心资料卡复用今日统计接口 | `GET /api/v1/users/me/stats/today` |
+
+### 个人中心当前接口清单
+
+| 功能 | API |
+| --- | --- |
+| 当前用户信息 | `GET /api/v1/users/me` |
+| 修改昵称/简介 | `PATCH /api/v1/users/me` |
+| 上传头像 | `POST /api/v1/users/me/avatar` |
+| 修改密码 | `PATCH /api/v1/users/me/password` |
+| 今日学习概览 | `GET /api/v1/users/me/stats/today` |
+| 个人学习统计 | `GET /api/v1/users/me/stats?period=week\|month\|year&date=YYYY-MM-DD` |
+| 独立情绪趋势 | `GET /api/v1/users/me/emotion-trends?period=week\|month\|year&date=YYYY-MM-DD` |
+| 打卡日历 | `GET /api/v1/checkins?month=YYYY-MM` |
+| 某日打卡详情 | `GET /api/v1/checkins/{date}` |
+| 补卡 | `POST /api/v1/checkins` |
+
+### 修改个人中心时需要同步关注
+
+```text
+frontend/rooms-demo.html
+backend/src/modules/users/routes.rs
+backend/src/modules/users/handler.rs
+backend/src/modules/users/service.rs
+backend/src/modules/users/repository.rs
+backend/src/modules/users/dto.rs
+backend/src/storage.rs
+backend/src/app.rs
+backend/tests/auth_api_test.rs
+docs/05-restful-api.md
+docs/10-home-room-stats-backend-audit.md
+README.md
+```
+
+### 本地联调提示
+
+前端页面是本地 HTML 文件，头像接口返回 `/storage/avatars/...` 相对路径时，页面需要拼接后端地址 `http://127.0.0.1:8080` 才能显示。当前 `frontend/rooms-demo.html` 已处理该逻辑。
+
+如果 Windows 上 Rust 安装在 D 盘，每次打开新终端后建议先设置：
+
+```powershell
+$env:CARGO_HOME = "D:\Rust\.cargo"
+$env:RUSTUP_HOME = "D:\Rust\.rustup"
+$env:Path = "D:\Rust\.cargo\bin;$env:Path"
+```

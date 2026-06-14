@@ -557,6 +557,94 @@
       font-size: 14px;
     }
 
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .profile-card {
+      text-align: center;
+    }
+
+    .profile-avatar-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 14px;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 4px solid var(--primary);
+      background: #eef2ff;
+      box-shadow: 0 12px 26px rgba(99, 102, 241, 0.18);
+    }
+
+    .avatar-upload-label {
+      position: absolute;
+      right: 0;
+      bottom: 4px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--primary);
+      border: 3px solid #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .avatar-upload-label input {
+      display: none;
+    }
+
+    .profile-name {
+      margin: 0 0 4px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .profile-id {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 18px 0;
+    }
+
+    .profile-stat strong {
+      display: block;
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .profile-stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .profile-sections {
+      display: grid;
+      gap: 18px;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 14px;
+    }
+
     .emotion-options {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -1010,6 +1098,10 @@
         grid-template-columns: 1fr;
       }
 
+      .profile-layout {
+        grid-template-columns: 1fr;
+      }
+
       .page-head,
       .hero-row,
       .toolbar {
@@ -1161,6 +1253,99 @@
             <h3>情绪趋势</h3>
             <div id="emotionTrendList" class="simple-list"></div>
           </section>
+        </div>
+      </div>
+
+      <div id="profilePage" class="app-page">
+        <div class="page-head">
+          <div>
+            <h2>个人中心</h2>
+            <p>维护头像、昵称、个人简介和登录密码。</p>
+          </div>
+          <button id="refreshProfileBtn" class="btn flat">刷新资料</button>
+        </div>
+
+        <div class="profile-layout">
+          <aside class="panel profile-card">
+            <div class="profile-avatar-wrap">
+              <img id="profileAvatar" class="profile-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="个人头像" />
+              <label class="avatar-upload-label" title="上传头像">
+                +
+                <input id="avatarFile" type="file" accept="image/png,image/jpeg" />
+              </label>
+            </div>
+            <h3 id="profileNicknameText" class="profile-name">同学</h3>
+            <p id="profileIdText" class="profile-id">ID: -</p>
+            <div class="profile-stats">
+              <div class="profile-stat">
+                <strong id="profileTodayMinutes">0</strong>
+                <span>今日学习</span>
+              </div>
+              <div class="profile-stat">
+                <strong id="profileStreakDays">0</strong>
+                <span>连续打卡</span>
+              </div>
+              <div class="profile-stat">
+                <strong id="profileMood">暂无</strong>
+                <span>今日心情</span>
+              </div>
+            </div>
+            <p id="avatarStatus" class="status"></p>
+          </aside>
+
+          <div class="profile-sections">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>个人信息</h3>
+              </div>
+              <div class="profile-form">
+                <div class="form-row">
+                  <div class="field">
+                    <label for="profileNickname">昵称</label>
+                    <input id="profileNickname" maxlength="20" placeholder="请输入昵称" />
+                  </div>
+                  <div class="field">
+                    <label for="profilePhone">手机号</label>
+                    <input id="profilePhone" disabled />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="profileBio">个人简介</label>
+                  <textarea id="profileBio" maxlength="255" placeholder="介绍一下你的学习状态和目标"></textarea>
+                </div>
+                <p id="profileStatus" class="status"></p>
+                <div>
+                  <button id="saveProfileBtn" class="btn">保存修改</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>修改密码</h3>
+              </div>
+              <div class="profile-form">
+                <div class="field">
+                  <label for="currentPassword">当前密码</label>
+                  <input id="currentPassword" type="password" placeholder="请输入当前密码" />
+                </div>
+                <div class="form-row">
+                  <div class="field">
+                    <label for="newPassword">新密码</label>
+                    <input id="newPassword" type="password" placeholder="至少8位，包含字母和数字" />
+                  </div>
+                  <div class="field">
+                    <label for="confirmPassword">确认新密码</label>
+                    <input id="confirmPassword" type="password" placeholder="再次输入新密码" />
+                  </div>
+                </div>
+                <p id="passwordStatus" class="status"></p>
+                <div>
+                  <button id="changePasswordBtn" class="btn">修改密码</button>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
@@ -1379,7 +1564,7 @@
 
     function initialTabFromHash() {
       const tab = window.location.hash.replace('#', '');
-      return ['home', 'rooms'].includes(tab) ? tab : 'home';
+      return ['home', 'rooms', 'profile'].includes(tab) ? tab : 'home';
     }
 
     async function request(path, options = {}) {
@@ -1426,7 +1611,7 @@
         currentUser = data.user;
         localStorage.setItem('study_room_token', token);
         el('navUser').textContent = data.user.nickname;
-        el('navAvatar').src = data.user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.user.nickname)}`;
+        el('navAvatar').src = displayAvatarUrl(data.user);
         el('loginPanel').style.display = 'none';
         el('appShell').classList.add('active');
         setActiveTab(initialTabFromHash());
@@ -1441,8 +1626,9 @@
       try {
         currentUser = await request('/users/me');
         el('navUser').textContent = currentUser.nickname;
-        el('navAvatar').src = currentUser.avatarUrl || avatarUrl(currentUser.nickname);
+        el('navAvatar').src = displayAvatarUrl(currentUser);
         renderHomeUser();
+        renderProfileUser();
       } catch (error) {
         currentUser = null;
       }
@@ -1476,6 +1662,101 @@
 
     function renderHomeUser() {
       el('homeNickname').textContent = currentUser?.nickname || '同学';
+    }
+
+    async function loadProfilePage() {
+      await Promise.all([loadCurrentUser(), loadProfileStats()]);
+      renderProfileUser();
+    }
+
+    async function loadProfileStats() {
+      try {
+        const data = await request('/users/me/stats/today');
+        el('profileTodayMinutes').textContent = formatMinutes(data.todayMinutes || 0);
+        el('profileStreakDays').textContent = `${data.streakDays || 0}`;
+        el('profileMood').textContent = data.latestEmotion || (data.todayCheckin ? '已打卡' : '暂无');
+      } catch (error) {
+        el('profileTodayMinutes').textContent = '-';
+        el('profileStreakDays').textContent = '-';
+        el('profileMood').textContent = '-';
+      }
+    }
+
+    function renderProfileUser() {
+      if (!currentUser || !el('profileNickname')) return;
+
+      el('profileAvatar').src = displayAvatarUrl(currentUser);
+      el('profileNicknameText').textContent = currentUser.nickname || '同学';
+      el('profileIdText').textContent = `ID: ${currentUser.userId || '-'}`;
+      el('profileNickname').value = currentUser.nickname || '';
+      el('profilePhone').value = currentUser.phone ? maskPhone(currentUser.phone) : '';
+      el('profileBio').value = currentUser.profile || '';
+    }
+
+    async function saveProfile() {
+      try {
+        const data = await request('/users/me', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            nickname: el('profileNickname').value.trim(),
+            profile: el('profileBio').value.trim(),
+          }),
+        });
+        currentUser = data;
+        el('navUser').textContent = data.nickname;
+        el('navAvatar').src = displayAvatarUrl(data);
+        renderHomeUser();
+        renderProfileUser();
+        setStatus('profileStatus', '个人资料已保存。', 'ok');
+      } catch (error) {
+        setStatus('profileStatus', error.message, 'error');
+      }
+    }
+
+    async function uploadAvatar() {
+      const file = el('avatarFile').files?.[0];
+      if (!file) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch(`${API}/users/me/avatar`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+        const payload = await response.json().catch(() => ({ message: response.statusText }));
+        if (!response.ok || payload.code !== 0) {
+          throw new Error(payload.message || `HTTP ${response.status}`);
+        }
+        currentUser = payload.data.user;
+        el('navAvatar').src = displayAvatarUrl(currentUser);
+        renderProfileUser();
+        setStatus('avatarStatus', '头像上传成功。', 'ok');
+      } catch (error) {
+        setStatus('avatarStatus', error.message, 'error');
+      } finally {
+        el('avatarFile').value = '';
+      }
+    }
+
+    async function changePassword() {
+      try {
+        await request('/users/me/password', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            currentPassword: el('currentPassword').value,
+            newPassword: el('newPassword').value,
+            confirmPassword: el('confirmPassword').value,
+          }),
+        });
+        el('currentPassword').value = '';
+        el('newPassword').value = '';
+        el('confirmPassword').value = '';
+        setStatus('passwordStatus', '密码已修改，下次登录请使用新密码。', 'ok');
+      } catch (error) {
+        setStatus('passwordStatus', error.message, 'error');
+      }
     }
 
     function renderRecommendedRooms(rooms) {
@@ -1600,7 +1881,7 @@
               <strong>${formatTime(room.closeAt)}</strong>
             </div>
             <div class="owner">
-              <img src="${room.creator.avatarUrl || avatarUrl(room.creator.nickname)}" alt="房主头像" />
+              <img src="${displayAvatarUrl(room.creator)}" alt="房主头像" />
               <span>房主：${escapeHtml(room.creator.nickname)}</span>
             </div>
           </div>
@@ -1694,7 +1975,7 @@
         node.dataset.seatId = seat.seatId;
         node.title = occupied && seat.occupiedBy ? seat.occupiedBy.nickname : '可选择';
         node.innerHTML = occupied && seat.occupiedBy
-          ? `<img class="seat-avatar" src="${seat.occupiedBy.avatarUrl || avatarUrl(seat.occupiedBy.nickname)}" alt="成员头像" />`
+          ? `<img class="seat-avatar" src="${displayAvatarUrl(seat.occupiedBy)}" alt="成员头像" />`
           : escapeHtml(seat.seatCode);
 
         if (!occupied) {
@@ -1944,7 +2225,7 @@
         const item = document.createElement('div');
         item.className = 'member';
         item.innerHTML = `
-          <img src="${member.avatarUrl || avatarUrl(member.nickname)}" alt="成员头像" />
+          <img src="${displayAvatarUrl(member)}" alt="成员头像" />
           <span>${escapeHtml(member.nickname)}</span>
         `;
         list.appendChild(item);
@@ -1987,6 +2268,20 @@
       return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed || 'user')}`;
     }
 
+    function displayAvatarUrl(user) {
+      if (user?.avatarUrl) {
+        return user.avatarUrl.startsWith('/storage/')
+          ? `http://127.0.0.1:8080${user.avatarUrl}`
+          : user.avatarUrl;
+      }
+
+      return avatarUrl(user?.nickname);
+    }
+
+    function maskPhone(phone) {
+      return String(phone).replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2');
+    }
+
     function escapeHtml(value) {
       return String(value)
         .replaceAll('&', '&amp;')
@@ -2023,6 +2318,7 @@
       el('homePage').classList.toggle('active', tab === 'home');
       el('roomListPage').classList.toggle('active', tab === 'rooms');
       el('statsPage').classList.toggle('active', tab === 'stats');
+      el('profilePage').classList.toggle('active', tab === 'profile');
       el('roomListPage').style.display = tab === 'rooms' ? '' : 'none';
       el('roomDetailPage').classList.toggle('active', false);
 
@@ -2036,6 +2332,10 @@
 
       if (tab === 'stats') {
         loadStatsPage();
+      }
+
+      if (tab === 'profile') {
+        loadProfilePage();
       }
     }
 
@@ -2078,14 +2378,14 @@
     el('openMakeupBtn').addEventListener('click', openMakeupModal);
     el('cancelMakeupBtn').addEventListener('click', closeMakeupModal);
     el('submitMakeupBtn').addEventListener('click', submitMakeup);
+    el('refreshProfileBtn').addEventListener('click', loadProfilePage);
+    el('saveProfileBtn').addEventListener('click', saveProfile);
+    el('avatarFile').addEventListener('change', uploadAvatar);
+    el('changePasswordBtn').addEventListener('click', changePassword);
     document.querySelectorAll('.nav-link').forEach((button) => {
       button.addEventListener('click', () => {
         if (button.dataset.tab === 'stats') {
           window.location.href = 'stats-prototype-demo.html';
-          return;
-        }
-        if (button.dataset.tab === 'profile') {
-          alert('该页面将在后续阶段实现。');
           return;
         }
         setActiveTab(button.dataset.tab);
