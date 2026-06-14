@@ -1,4 +1,4 @@
-# ai-study-room
+﻿# ai-study-room
 
 > 前端项目文档
 
@@ -198,7 +198,7 @@ frontend/
 
 - 用户头像、昵称、手机号、注册时间展示
 - "查看学习统计" 跳转按钮
-- "编辑个人资料" 和 "修改密码" 按钮（已禁用，标注"即将上线"）
+- "编辑个人资料"、头像上传和修改密码
 - 退出登录
 - 数据来源：`UserContext`
 
@@ -275,7 +275,7 @@ viewmodels/ 层（DTO → UI Model 转换）
 
 ---
 
-## 7. API 集成情况
+## 7. API 集成情况和遗留问题
 
 ### 已集成（前端已调用，后端已实现）
 
@@ -285,6 +285,9 @@ viewmodels/ 层（DTO → UI Model 转换）
 | 注册 | `authApi.register()` |
 | 管理员登录 | `adminApi.login()` |
 | 获取用户信息 | `userApi.getProfile()` |
+| 编辑个人资料 | `userApi.updateProfile()` |
+| 上传头像 | `userApi.uploadAvatar()` |
+| 修改密码 | `userApi.changePassword()` |
 | 自习室列表 | `roomApi.getRoomList()` |
 | 自习室详情 | `roomApi.getRoomDetail()` |
 | 创建自习室 | `roomApi.createRoom()` |
@@ -299,14 +302,36 @@ viewmodels/ 层（DTO → UI Model 转换）
 
 ### 已定义但后端未实现（前端已禁用）
 
-- 编辑个人资料（PATCH /users/me）
-- 上传头像（POST /users/me/avatar）
-- 修改密码（PATCH /users/me/password）
 - AI 反馈提交（POST /users/me/emotion-records/{id}/feedback）
 - 管理后台仪表盘（GET /admin/dashboard）
 - 用户管理（GET /admin/users, PATCH /admin/users/{id}/status）
 - 房间管理（GET /admin/rooms, PATCH /admin/rooms/{id}/status）
 - 审计日志（GET /admin/audit-logs）
+
+
+### 后端未实现部分与前端冲突性检查
+
+| 后端缺口 | 前端行为 | 状态 |
+|------|----------|------|
+| 首页推荐自习室/最近房间专用接口 | pages/home/index.jsx 调用 roomApi.getRoomList({ status: "open", page: 1, pageSize: 3 })，即通用 GET /rooms 接口 + 参数筛选，未调用任何专用推荐接口。 | ✅ 无冲突
+| 私密房间密码校验 | CreateRoomModal.jsx 硬编码 isPrivate: false，room.js 无密码相关 API，无任何密码校验调用。 | ✅ 无冲突
+| 正向计时/番茄钟模式完整计时器逻辑 | 全部计时逻辑（番茄钟轮次、专注/休息切换、模式互换）由前端 hooks/useTimer.js 纯客户端实现，仅 mode 和 status 提交到后端。 | ✅ 无冲突
+| 房间成员历史/在线状态更细粒度	| 前端仅展示 GET /rooms/{roomId} 返回的当前 members 数组，未调用任何历史/在线状态 API。 | ✅ 无冲突
+| 情绪入口未强制 session 必须 ended | 在 StudyTimer.jsx 中流程为：endStudy() (结束会话) → setShowEmotion(true) (弹出情绪窗口) → submitEmotion() (提交情绪)。情绪提交在 endStudy 之后，sessionId 通过 lastSessionIdRef.current 传递。 | ✅ 无冲突
+
+- 以上 5 个"后端缺口"在当前前端代码中均不存在对应的调用或依赖，前端实现在这些方面与后端现状兼容，没有因后端缺失而产生的功能断裂。
+
+### 前后端整合产生的问题
+- 统计数据未反映新学习/情绪记录
+  前端链路验证：创建会话 → 学习 → 心跳 → 结束 → 提交情绪 → 跳转 → 获取统计，全链路完整且每次获取统计均为组件挂载时实时发起的新请求。
+  可能原因：后端统计接口的实现逻辑，例如：
+  - 后端统计接口查询时未包含刚结束的会话（时间窗口截断、事务未提交、或有缓存）
+  - 后端 PATCH /study-sessions/{id} handler 未正确设置 end_time / duration_minutes / is_valid 等字段
+  - 后端 GET /users/me/stats 使用预计算而非实时聚合
+- 座位号编码总是 A 开头
+  可能原因：
+  backend/src/modules/rooms/seat_code.rs：pub fn seat_code(index: i32) -> String { format!("A{:02}", index) }
+  该函数固定使用 A 前缀，没有将 room_id 纳入计算。seed 数据中 Room 2 的座位 B01/B02 是手动硬编码的，运行时通过 createRoom 创建的座位全部为 A01/A02/A03...
 
 ---
 
@@ -389,6 +414,7 @@ baseURL: import.meta.env.VITE_API_BASE_URL || "/api/v1"
 - 用户注册与登录（含 token 持久化与自动恢复）
 - 管理员登录
 - 用户信息展示（Navbar、个人中心）
+- 个人中心：编辑资料 / 修改密码 / 上传头像已接入
 - 自习室列表、创建、详情（含座位网格与成员列表）
 - 学习计时完整生命周期（正向计时 + 番茄钟 + 休息管理）
 - 学习心跳（30 秒间隔自动发送）
@@ -396,11 +422,9 @@ baseURL: import.meta.env.VITE_API_BASE_URL || "/api/v1"
 - 情绪提交与趋势查询
 - 学习统计与打卡日历
 - 首页今日概览
+- AI 反馈弹窗：修复后端 aiFeedback 为 null 时弹窗显示空白的问题，始终调用 toAiFeedbackVM 注入 EMOTION_COMFORT_MAP 默认安慰文本
 
 ### 部分完成
-
-- 个人中心：信息展示已完成，编辑资料 / 修改密码 / 上传头像因后端 API 未实现而禁用
-- 情绪分析：趋势展示已完成，AI 反馈提交到后端功能已禁用
 - 学习统计：图表渲染已完成，环比变化数据未接入
 
 ### 未完成

@@ -91,8 +91,7 @@ export default function LoginPage({ setCurrentPage, setUserRole }) {
         if (token) localStorage.setItem("token", token);
         setUserRole("admin");
         setCurrentPage("admin");
-        refreshUser();
-      })
+        })
       .catch((err) => {
         setAdminError(err?.message || "管理员登录失败");
       })
@@ -118,7 +117,7 @@ export default function LoginPage({ setCurrentPage, setUserRole }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">手机号</label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"><i className="fa fa-phone"></i></span>
-                    <input id="phone" type="tel" placeholder="请输入手机号(测试禁用填11111111111)" maxLength="11" value={phone} onChange={(e) => setPhone(e.target.value)} required
+                    <input id="phone" type="tel" placeholder="请输入手机号" maxLength="11" value={phone} onChange={(e) => setPhone(e.target.value)} required
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-colors" />
                   </div>
                 </div>

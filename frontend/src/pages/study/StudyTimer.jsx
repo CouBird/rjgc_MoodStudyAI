@@ -76,6 +76,15 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
   };
 
   const finishSession = async () => {
+    // Check minimum session duration (works for both normal & pomodoro modes)
+    const effectiveStudyTime = timerMode === "pomodoro"
+      ? pomoRound * 25 * 60 + (25 * 60 - pomodoroTime)
+      : totalSessionTime;
+    if (effectiveStudyTime < MIN_SESSION_SECONDS && !isBreak) {
+      togglePause();
+      setShowShortModal(true);
+      return;
+    }
     setIsActive(false);
     setIsStudying(false);
     setActiveRoomId(null);
@@ -104,7 +113,7 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
         emotionTag: selectedEmotion,
         userNote: emotionNote || undefined,
       });
-      if (result && result.aiFeedback) {
+      if (result) {
         setAiFeedbackData(result.aiFeedback);
       }
     } catch (err) {
@@ -208,6 +217,11 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
               </>
             ) : (
               <>
+                <div className="mb-6">
+                  <input type="text" value={studyContent} onChange={(e) => setStudyContent(e.target.value)}
+                    placeholder="记录一下你正在学习的内容..." maxLength={100}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-colors" />
+                </div>
                 <div className="mb-8 relative">
                   <svg className="w-48 h-48 mx-auto transform -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" strokeWidth="6" />
@@ -231,9 +245,13 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
                     </button>
                   ) : (
                     <>
-                      <button onClick={() => { setIsActive(false); setTimerMode("normal"); }}
+                      <button onClick={finishSession}
                         className="px-8 py-3 bg-danger text-white rounded-xl font-semibold hover:bg-danger/90 transition-all flex items-center gap-2">
                         <i className="fa fa-stop"></i>结束
+                      </button>
+                      <button onClick={handleTakeBreak}
+                        className="px-8 py-3 bg-warning text-white rounded-xl font-semibold hover:bg-warning/90 transition-all flex items-center gap-2">
+                        <i className="fa fa-pause"></i>休息一下
                       </button>
                       <button onClick={isPaused ? (() => { togglePause(); }) : togglePause}
                         className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all flex items-center gap-2">

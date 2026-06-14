@@ -7,7 +7,7 @@ const CreateRoomModal = ({ isOpen, onClose, onSuccess }) => {
   const [desc, setDesc] = useState("");
   const [closeAt, setCloseAt] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) { alert("房间名称不能为空"); return; }
     const payload = {
@@ -16,11 +16,13 @@ const CreateRoomModal = ({ isOpen, onClose, onSuccess }) => {
       description: desc.trim(),
       isPrivate: false,
     };
-    // 如果用户未选择关闭时间，默认设置为365天后（全天开放语义）
     payload.closeAt = closeAt
       ? new Date(closeAt).toISOString()
       : new Date(Date.now() + 86400000 * 365).toISOString();
-    onSuccess(payload);
+    // Let parent handle the API call; only close on success
+    if (onSuccess) {
+      await onSuccess(payload);
+    }
     onClose();
   };
 

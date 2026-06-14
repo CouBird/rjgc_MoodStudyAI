@@ -28,7 +28,7 @@ function App() {
   const [selectedSeatCode, setSelectedSeatCode] = useState(null);
   const [activeRoomId, setActiveRoomId] = useState(null);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
-  const hideNavbar = currentPage === "login" || currentPage === "study-timer";
+  const hideNavbar = currentPage === "login" || currentPage === "study-timer" || currentPage === "admin";
 
   // Token 恢复时自动跳转首页
   const handleUserReady = () => {
@@ -58,7 +58,7 @@ function App() {
       <StudyProvider>
         <div className="min-h-screen bg-gradient-to-br from-calm via-light to-purple-50 text-dark font-sans antialiased">
           {!hideNavbar && <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} userRole={userRole} />}
-          <main className={currentPage === "study-timer" ? "" : "pt-24"}>
+          <main className={currentPage === "study-timer" || currentPage === "admin" ? "" : "pt-24"}>
             <Suspense fallback={<LoadingFallback />}>{renderPage()}</Suspense>
           </main>
         </div>

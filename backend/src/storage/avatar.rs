@@ -5,6 +5,9 @@ use uuid::Uuid;
 
 use crate::error::AppError;
 
+pub const ALLOWED_AVATAR_MIME: [&str; 3] = ["image/jpeg", "image/jpg", "image/png"];
+pub const MAX_AVATAR_BYTES: usize = 3 * 1024 * 1024;
+
 pub async fn save_avatar(
     avatar_dir: &str,
     max_avatar_bytes: usize,
@@ -12,11 +15,16 @@ pub async fn save_avatar(
     bytes: &[u8],
 ) -> Result<String, AppError> {
     if bytes.is_empty() {
-        return Err(AppError::Validation("头像文件不能为空".to_string()));
+        return Err(AppError::Validation(
+            "avatar file cannot be empty".to_string(),
+        ));
     }
 
     if bytes.len() > max_avatar_bytes {
-        return Err(AppError::PayloadTooLarge("头像文件不能超过3MB".to_string()));
+        return Err(AppError::PayloadTooLarge(format!(
+            "avatar file cannot exceed {} bytes",
+            max_avatar_bytes
+        )));
     }
 
     let extension = avatar_extension(content_type, bytes)?;
@@ -33,7 +41,12 @@ fn avatar_extension(content_type: Option<&str>, bytes: &[u8]) -> Result<&'static
     match content_type {
         Some("image/jpeg") | Some("image/jpg") if is_jpeg(bytes) => Ok("jpg"),
         Some("image/png") if is_png(bytes) => Ok("png"),
-        _ => Err(AppError::Validation("头像仅支持 JPG 或 PNG".to_string())),
+        Some(mime) if !ALLOWED_AVATAR_MIME.contains(&mime) => Err(AppError::Validation(
+            "avatar only supports JPG or PNG".to_string(),
+        )),
+        _ => Err(AppError::Validation(
+            "avatar content does not match JPG or PNG format".to_string(),
+        )),
     }
 }
 

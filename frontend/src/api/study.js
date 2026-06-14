@@ -33,5 +33,5 @@ export const studyApi = {
 
   /** 学习心跳 */
   sendHeartbeat: (sessionId) =>
-    request.post(`/study-sessions/${sessionId}/heartbeats`),
+    request.post(`/study-sessions/${sessionId}/heartbeats`, {}),
 };

@@ -10,6 +10,7 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
   const [showCreate, setShowCreate] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [createLoading, setCreateLoading] = useState(false);
 
   useEffect(() => {
     roomApi.getRoomList()
@@ -22,6 +23,21 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
     r.name && r.name.toLowerCase().includes(query.toLowerCase())
   );
 
+  const handleRoomCreated = async (payload) => {
+    setCreateLoading(true);
+    try {
+      await roomApi.createRoom(payload);
+      setShowCreate(false);
+      // Refresh room list after creation
+      const data = await roomApi.getRoomList();
+      setRooms(toRoomListVM(data));
+    } catch (err) {
+      alert(err?.message || "创建自习室失败");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 pb-16 min-h-screen">
       <div className="mb-6">
@@ -33,8 +49,8 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors w-full sm:w-64 outline-none" />
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"><i className="fa fa-search"></i></span>
             </div>
-            <button onClick={() => setShowCreate(true)} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center">
-              <i className="fa fa-plus mr-2"></i> 创建自习室
+            <button onClick={() => setShowCreate(true)} disabled={createLoading} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center disabled:opacity-60">
+              <i className="fa fa-plus mr-2"></i> {createLoading ? "创建中..." : "创建自习室"}
             </button>
           </div>
         </div>
@@ -83,7 +99,7 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
         </div>
       )}
       <DuplicateSessionModal isOpen={showDup} onClose={() => setShowDup(false)} />
-      <CreateRoomModal isOpen={showCreate} onClose={() => setShowCreate(false)} onSuccess={() => setCurrentPage("study-rooms")} />
+      <CreateRoomModal isOpen={showCreate} onClose={() => setShowCreate(false)} onSuccess={handleRoomCreated} />
     </div>
   );
 }

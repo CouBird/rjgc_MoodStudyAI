@@ -252,7 +252,7 @@ export function StudyProvider({ children }) {
       const payload = toEmotionPayload(data);
       if (!payload) return null;
       const raw = await emotionApi.submitEmotion(sid, payload);
-      if (raw && raw.aiFeedback) {
+      if (raw) {
         raw.aiFeedback = toAiFeedbackVM(raw, payload.emotionTag);
       }
       return raw;

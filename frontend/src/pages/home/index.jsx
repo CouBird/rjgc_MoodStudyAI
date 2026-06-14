@@ -112,7 +112,7 @@ export default function HomePage({ setCurrentPage, setSelectedRoomId }) {
           ))}
         </div>
       </div>
-      <CreateRoomModal isOpen={showCreate} onClose={() => setShowCreate(false)} onSuccess={() => setCurrentPage("study-rooms")} />
+      <CreateRoomModal isOpen={showCreate} onClose={() => setShowCreate(false)} onSuccess={async (payload) => { await roomApi.createRoom(payload); setCurrentPage("study-rooms"); }} />
     </div>
   );
 }
