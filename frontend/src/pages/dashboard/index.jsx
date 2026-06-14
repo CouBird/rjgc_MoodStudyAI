@@ -7,13 +7,11 @@ import { toUserStatsVM, toEmotionTrendVM } from '../../viewmodels';
 
 Chart.register(...registerables);
 
-import { EMOTION_LABELS } from "../../constants/emotions";
+import { EMOTION_EMOJI_MAP, EMOTION_LABELS } from "../../constants/emotions";
 
-// 情绪标签 → 图表纵轴值（仅 Chart.js 渲染用，与提交评分 EMOTION_SCORE_MAP 不同）
-const CHART_EMOTION_SCORES = Object.freeze({
-  "平静": 4, "自豪": 5, "满足": 4, "快乐": 5,
-  "疲惫": 2, "焦虑": 2, "难过": 2,
-});
+const CHART_EMOTION_SCORES = Object.freeze(
+  EMOTION_LABELS.reduce((acc, label, index) => ({ ...acc, [label]: index }), {})
+);
 
 const CARD_COLORS = {
   primary: { bg: "bg-primary/10", text: "text-primary" },
@@ -23,7 +21,7 @@ const CARD_COLORS = {
 };
 
 function getEmotionPointColors(data) {
-  return data.map((val) => (val >= 4 ? "#f59e0b" : "#10b981"));
+  return data.map((val) => (val == null ? "rgba(0,0,0,0)" : "#8b5cf6"));
 }
 
 function buildCalendarDays(year, month, checkedDates) {
@@ -84,16 +82,45 @@ function initEmotionChart(canvas, labels, data) {
         tension: 0.4,
         fill: true,
         pointBackgroundColor: getEmotionPointColors(data),
-        pointRadius: 6,
+        pointRadius: data.map((val) => (val == null ? 0 : 6)),
+        spanGaps: false,
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, max: 6, ticks: { callback: (v) => EMOTION_LABELS[v] || "" } } },
+      scales: {
+        y: {
+          min: 0,
+          max: EMOTION_LABELS.length - 1,
+          ticks: {
+            stepSize: 1,
+            callback: (v) => EMOTION_LABELS[v] || "",
+          },
+        },
+      },
     },
   });
+}
+
+function buildEmotionSeries(labels, items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return labels.map(() => null);
+  }
+
+  const valuesByLabel = new Map(
+    items.map((item) => {
+      const date = new Date(item.date + "T00:00:00");
+      const label = (date.getMonth() + 1) + "/" + date.getDate();
+      const value = Number.isInteger(item.emotionValue)
+        ? item.emotionValue
+        : CHART_EMOTION_SCORES[item.emotionTag];
+      return [label, value ?? null];
+    })
+  );
+
+  return labels.map((label) => valuesByLabel.get(label) ?? null);
 }
 
 export default function Dashboard({ setCurrentPage }) {
@@ -146,9 +173,7 @@ export default function Dashboard({ setCurrentPage }) {
       return (d.getMonth() + 1) + "/" + d.getDate();
     }) || [];
     const timeData = statsData?.trends?.map((t) => t.hours) || [];
-    const emotionVals = emotionTrend?.items?.map((i) => {
-      return CHART_EMOTION_SCORES[i.emotionTag] ?? 3;
-    }) || [];
+    const emotionVals = buildEmotionSeries(chartLabels, emotionTrend?.items);
     if (chartLabels.length > 0) {
       studyChartRef.current = initStudyChart(studyRef.current, chartLabels, timeData);
       emotionChartRef.current = initEmotionChart(emotionRef.current, chartLabels, emotionVals);
@@ -165,7 +190,7 @@ export default function Dashboard({ setCurrentPage }) {
   const totalSessions = statsData?.validSessionCount ?? statsData?.checkinCount ?? 0;
 
   const mainEmotion = {
-    emoji: "??",
+    emoji: EMOTION_EMOJI_MAP[emotionTrend?.mainEmotion] || "💭",
     text: emotionTrend?.mainEmotion || "平静",
     desc: emotionTrend?.summary || "暂无数据",
   };

@@ -12,10 +12,7 @@ export const userApi = {
   updateProfile: (data) => request.patch("/users/me", data),
 
   /** 上传头像（multipart/form-data） */
-  uploadAvatar: (formData) =>
-    request.post("/users/me/avatar", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+  uploadAvatar: (formData) => request.post("/users/me/avatar", formData),
 
   /** 修改密码 */
   changePassword: (data) => request.patch("/users/me/password", data),

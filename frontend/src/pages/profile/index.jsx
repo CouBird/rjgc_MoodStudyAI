@@ -127,14 +127,21 @@ export default function ProfilePage({ setCurrentPage }) {
 
   // --- Avatar Upload ---
   const handleAvatarClick = () => {
+    if (avatarUploading) return;
     fileInputRef.current?.click();
   };
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("头像文件不能超过5MB");
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      alert("头像仅支持 JPG 或 PNG 格式");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      alert("头像文件不能超过3MB");
+      e.target.value = "";
       return;
     }
     const formData = new FormData();
@@ -147,6 +154,7 @@ export default function ProfilePage({ setCurrentPage }) {
       alert(err?.message || "头像上传失败");
     } finally {
       setAvatarUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -162,7 +170,13 @@ export default function ProfilePage({ setCurrentPage }) {
 
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <div className="relative cursor-pointer group" onClick={handleAvatarClick}>
+            <button
+              type="button"
+              className="relative cursor-pointer group rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:cursor-wait"
+              onClick={handleAvatarClick}
+              disabled={avatarUploading}
+              aria-label="更换头像"
+            >
               <img
                 src={avatarSrc}
                 alt="用户头像"
@@ -174,11 +188,11 @@ export default function ProfilePage({ setCurrentPage }) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png"
                 className="hidden"
                 onChange={handleAvatarChange}
               />
-            </div>
+            </button>
             <div className="flex-1 text-center md:text-left">
               <h3 className="text-xl font-bold text-gray-800 mb-2">{userVM.displayName || "用户"}</h3>
               <div className="flex flex-wrap justify-center md:justify-start gap-2">

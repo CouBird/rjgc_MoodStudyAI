@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 统一请求封装
  *
  * - 基于 axios 封装
@@ -21,6 +21,10 @@ request.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+      delete config.headers["content-type"];
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -52,6 +56,7 @@ request.interceptors.response.use(
       // 401：Token 无效或过期，直接 logout（后端未实现 /auth/refresh）
       if (status === 401) {
         localStorage.removeItem("token");
+        localStorage.removeItem("role");
         localStorage.removeItem("refreshToken");
         console.error("未登录或 Token 无效");
         window.location.href = "/login";

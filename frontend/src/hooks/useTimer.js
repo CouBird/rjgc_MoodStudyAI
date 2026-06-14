@@ -6,7 +6,7 @@ export function useTimer() {
   const [totalSessionTime, setTotalSessionTime] = useState(0);
   const [pomodoroTime, setPomodoroTime] = useState(25 * 60);
   const [pomoRound, setPomoRound] = useState(0);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [breakTime, setBreakTime] = useState(5 * 60);
@@ -67,7 +67,7 @@ export function useTimer() {
     setTotalSessionTime(0);
     setPomodoroTime(25 * 60);
     setPomoRound(0);
-    setIsActive(true);
+    setIsActive(false);
     setIsPaused(false);
     setIsBreak(false);
     setBreakTime(5 * 60);

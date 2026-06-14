@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub redis: RedisConfig,
     pub jwt: JwtConfig,
     pub storage: StorageConfig,
+    pub ai: AiConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -43,6 +44,14 @@ pub struct StorageConfig {
     pub max_avatar_bytes: usize,
 }
 
+#[derive(Debug, Clone)]
+pub struct AiConfig {
+    pub provider: Option<String>,
+    pub api_key: Option<String>,
+    pub api_base_url: Option<String>,
+    pub model: Option<String>,
+}
+
 impl AppConfig {
     pub fn from_env() -> Result<Self, AppError> {
         dotenvy::dotenv().ok();
@@ -70,6 +79,12 @@ impl AppConfig {
                 avatar_dir: env_or("AVATAR_DIR", "storage/avatars"),
                 max_avatar_bytes: parse_env("MAX_AVATAR_BYTES", 3 * 1024 * 1024)?,
             },
+            ai: AiConfig {
+                provider: optional_env("AI_PROVIDER"),
+                api_key: optional_env("AI_API_KEY"),
+                api_base_url: optional_env("AI_API_BASE_URL"),
+                model: optional_env("AI_MODEL"),
+            },
         })
     }
 }
@@ -84,6 +99,13 @@ impl ServerConfig {
 
 fn env_or(key: &str, default: &str) -> String {
     env::var(key).unwrap_or_else(|_| default.to_string())
+}
+
+fn optional_env(key: &str) -> Option<String> {
+    env::var(key)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
 }
 
 fn parse_env<T>(key: &str, default: T) -> Result<T, AppError>

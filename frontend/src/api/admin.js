@@ -1,17 +1,7 @@
-﻿/**
+/**
  * 管理后台模块 API
  *
- * 后端实际实现（backend handler + docs 对照）：
- * - POST /admin/auth/login    管理员登录（已实现）
- *
- * 后端缺失（docs #24-#29 已定义但尚未实现）：
- * - GET   /admin/dashboard         ❌ 缺失
- * - GET   /admin/users             ❌ 缺失
- * - PATCH /admin/users/{id}/status ❌ 缺失
- * - GET   /admin/rooms             ❌ 缺失
- * - PATCH /admin/rooms/{id}/status ❌ 缺失
- * - GET   /admin/audit-logs        ❌ 缺失
- * 以上功能后端未实现，前端保持占位 UI
+ * 后端统一挂载在 /api/v1 下，这里只写业务路径。
  */
 
 import request from "./request";
@@ -19,4 +9,22 @@ import request from "./request";
 export const adminApi = {
   /** 管理员登录 */
   login: (data) => request.post("/admin/auth/login", data),
+
+  /** 后台概览 */
+  getDashboard: () => request.get("/admin/dashboard"),
+
+  /** 用户列表 */
+  getUsers: (params) => request.get("/admin/users", { params }),
+
+  /** 修改用户状态 */
+  updateUserStatus: (userId, data) => request.patch(`/admin/users/${userId}/status`, data),
+
+  /** 自习室列表 */
+  getRooms: (params) => request.get("/admin/rooms", { params }),
+
+  /** 修改自习室状态 */
+  updateRoomStatus: (roomId, data) => request.patch(`/admin/rooms/${roomId}/status`, data),
+
+  /** 管理员操作日志 */
+  getAuditLogs: (params) => request.get("/admin/audit-logs", { params }),
 };

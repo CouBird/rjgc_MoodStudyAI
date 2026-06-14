@@ -38,3 +38,34 @@ export const formatTime = (totalSeconds) => {
   const s = String(totalSeconds % 60).padStart(2, '0');
   return h === '00' ? m + ':' + s : h + ':' + m + ':' + s;
 };
+
+export const avatarFallback = (name = '用户') => {
+  const label = String(name || '用户').trim().slice(0, 1) || '用';
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+      <rect width="96" height="96" rx="48" fill="#6366f1"/>
+      <text x="48" y="56" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">${label}</text>
+    </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+export const resolveAvatarUrl = (avatarUrl, name = '用户') => {
+  const value = String(avatarUrl || '').trim();
+  if (!value || value === 'default.png' || value === 'unknown-avatar') {
+    return avatarFallback(name);
+  }
+
+  if (/^(https?:|data:|blob:)/i.test(value)) {
+    return value;
+  }
+
+  if (value.startsWith('/')) {
+    return value;
+  }
+
+  if (value.startsWith('storage/')) {
+    return `/${value}`;
+  }
+
+  return `/storage/avatars/${value}`;
+};

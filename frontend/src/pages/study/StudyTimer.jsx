@@ -10,9 +10,9 @@ import { EMOTION_OPTIONS } from '../../constants/emotions';
 
 
 
-export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoomId, selectedSeat, selectedSeatCode, activeRoomId }) {
+export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoomId, setSelectedSeat, setSelectedSeatCode, selectedSeat, selectedSeatCode, activeRoomId }) {
   const study = useStudy();
-  const { timerMode, setTimerMode, totalSessionTime, pomodoroTime, pomoRound, isActive, setIsActive, isPaused, togglePause, isBreak, setIsBreak, breakTime, setBreakTime, formatTime } = useTimer();
+  const { timerMode, setTimerMode, totalSessionTime, pomodoroTime, pomoRound, isActive, setIsActive, isPaused, setIsPaused, togglePause, isBreak, setIsBreak, breakTime, setBreakTime, formatTime } = useTimer();
   const [studyContent, setStudyContent] = useState("");
   const [showPomoModal, setShowPomoModal] = useState(false);
   const [showShortModal, setShowShortModal] = useState(false);
@@ -26,21 +26,47 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    setIsStudying(true); setActiveRoomId(activeRoomId || "1");
-    return () => { setIsStudying(false); setActiveRoomId(null); };
-  }, []);
+    const resolvedRoomId = activeRoomId || study.activeSession?.roomId || null;
+    const resolvedSeatId = selectedSeat || study.activeSession?.seatId || null;
+    const resolvedSeatCode = selectedSeatCode || study.activeSession?.seatCode || null;
+
+    setIsStudying(true);
+    setActiveRoomId(resolvedRoomId);
+    if (setSelectedSeat) setSelectedSeat(resolvedSeatId);
+    if (setSelectedSeatCode) setSelectedSeatCode(resolvedSeatCode);
+    if (study.activeSession?.roomName) setCurrentRoomName(study.activeSession.roomName);
+    if (study.sessionStatus === StudySessionStatus.STUDYING || study.sessionStatus === StudySessionStatus.PAUSED) {
+      setIsActive(true);
+      setIsPaused(study.sessionStatus === StudySessionStatus.PAUSED);
+    }
+    return () => {};
+  }, [activeRoomId, selectedSeat, selectedSeatCode, setActiveRoomId, setIsStudying, setSelectedSeat, setSelectedSeatCode, study.activeSession?.roomId, study.activeSession?.seatId, study.activeSession?.seatCode, study.activeSession?.roomName, study.sessionStatus, setIsActive, setIsPaused]);
+
+  useEffect(() => {
+    if (study.activeSession?.roomName) {
+      setCurrentRoomName(study.activeSession.roomName);
+    }
+  }, [study.activeSession]);
 
   useEffect(() => {
     if (isBreak) { setShowBreakModal(true); }
     else setShowBreakModal(false);
   }, [isBreak]);
 
-  const handleStart = async () => {
+  useEffect(() => {
+    if (study.sessionStatus === StudySessionStatus.STUDYING || study.sessionStatus === StudySessionStatus.PAUSED) {
+      setIsActive(true);
+      setIsPaused(study.sessionStatus === StudySessionStatus.PAUSED);
+    }
+  }, [study.sessionStatus, setIsActive, setIsPaused]);
+
+  const handleStart = async (mode = timerMode) => {
     if (study.sessionStatus === StudySessionStatus.STUDYING || study.sessionStatus === StudySessionStatus.PAUSED) return;
     setActionLoading(true);
     try {
-      await study.startStudy({ roomId: activeRoomId || "1", seatId: selectedSeat, mode: "normal" });
+      await study.startStudy({ roomId: activeRoomId, seatId: selectedSeat, mode, studyContent });
       setIsActive(true);
+      setIsPaused(false);
     } catch (err) {
       console.error("开始学习失败:", err);
     } finally {
@@ -67,8 +93,8 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
 
   const handleEnd = () => {
     if (isBreak) return;
-    if (totalSessionTime < MIN_SESSION_SECONDS) {
-      togglePause();
+    if (displaySessionSeconds < MIN_SESSION_SECONDS) {
+      setIsPaused(true);
       setShowShortModal(true);
       return;
     }
@@ -79,29 +105,43 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
     // Check minimum session duration (works for both normal & pomodoro modes)
     const effectiveStudyTime = timerMode === "pomodoro"
       ? pomoRound * 25 * 60 + (25 * 60 - pomodoroTime)
-      : totalSessionTime;
+      : displaySessionSeconds;
     if (effectiveStudyTime < MIN_SESSION_SECONDS && !isBreak) {
-      togglePause();
+      setIsPaused(true);
       setShowShortModal(true);
       return;
     }
-    setIsActive(false);
-    setIsStudying(false);
-    setActiveRoomId(null);
+    setActionLoading(true);
     try {
-      await study.endStudy({ finalDuration: totalSessionTime });
+      const endedSessionId = await study.endStudy({ studyContent });
+      if (!endedSessionId) {
+        throw new Error("结束学习失败");
+      }
+      setIsActive(false);
+      setIsStudying(false);
+      setActiveRoomId(null);
+      setShowEmotion(true);
     } catch (err) {
       console.error("结束学习失败:", err);
+    } finally {
+      setActionLoading(false);
     }
-    setShowEmotion(true);
   };
 
-  const endShortSession = () => {
+  const endShortSession = async () => {
     setShowShortModal(false);
-    setIsActive(false);
-    setIsStudying(false);
-    setActiveRoomId(null);
-    setCurrentPage("home");
+    setActionLoading(true);
+    try {
+      await study.endStudy({ studyContent });
+      setIsActive(false);
+      setIsStudying(false);
+      setActiveRoomId(null);
+      setCurrentPage("home");
+    } catch (err) {
+      console.error("结束短学习失败:", err);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleEmotionSubmit = async (e) => {
@@ -115,14 +155,14 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
       });
       if (result) {
         setAiFeedbackData(result.aiFeedback);
+        setShowEmotion(false);
+        setShowAiFeedback(true);
       }
     } catch (err) {
       console.error("提交情绪失败:", err);
     } finally {
       setActionLoading(false);
     }
-    setShowEmotion(false);
-    setShowAiFeedback(true);
   };
 
   const handleAiDone = () => { setShowAiFeedback(false); setCurrentPage("home"); };
@@ -135,7 +175,8 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
     setIsBreak(false);
   };
 
-  const seatLabel = selectedSeatCode || '--';
+  const seatLabel = selectedSeatCode || study.activeSession?.seatCode || '--';
+  const displaySessionSeconds = Math.max(totalSessionTime, study.totalDuration || 0);
 
   const circumference = 2 * Math.PI * 45;
   const pomodoroElapsed = 25 * 60 - pomodoroTime;
@@ -181,7 +222,7 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
             {timerMode === "normal" ? (
               <>
                 <div className="mb-8">
-                  <div className="text-6xl font-bold text-dark tracking-wider mb-4">{formatTime(totalSessionTime)}</div>
+                  <div className="text-6xl font-bold text-dark tracking-wider mb-4">{formatTime(displaySessionSeconds)}</div>
                   <p className="text-gray-500 text-sm">累计学习时间</p>
                 </div>
 
@@ -239,9 +280,9 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
 
                 <div className="flex justify-center gap-4">
                   {!isActive ? (
-                    <button onClick={() => setIsActive(true)}
-                      className="px-12 py-3 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
-                      <i className="fa fa-play"></i>开始番茄
+                    <button onClick={() => handleStart("pomodoro")} disabled={actionLoading}
+                      className="px-12 py-3 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-60">
+                      <i className="fa fa-play"></i>{actionLoading ? "启动中..." : "开始番茄"}
                     </button>
                   ) : (
                     <>
@@ -253,7 +294,7 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
                         className="px-8 py-3 bg-warning text-white rounded-xl font-semibold hover:bg-warning/90 transition-all flex items-center gap-2">
                         <i className="fa fa-pause"></i>休息一下
                       </button>
-                      <button onClick={isPaused ? (() => { togglePause(); }) : togglePause}
+                      <button onClick={isPaused ? handleResume : handlePause}
                         className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all flex items-center gap-2">
                         <i className={"fa " + (isPaused ? "fa-play" : "fa-pause")}></i>{isPaused ? "继续" : "暂停"}
                       </button>
@@ -347,7 +388,7 @@ export default function StudyTimer({ setCurrentPage, setIsStudying, setActiveRoo
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">备注（可选）</label>
-                <textarea value={emotionNote} onChange={(e) => setEmotionNote(e.target.value)} rows={2} placeholder="写下你现在的感受..."
+                <textarea value={emotionNote} onChange={(e) => setEmotionNote(e.target.value)} rows={2} maxLength={255} placeholder="写下你现在的感受..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none resize-none" />
               </div>
               <button type="submit" disabled={actionLoading} className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60">

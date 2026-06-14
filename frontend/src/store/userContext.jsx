@@ -1,33 +1,51 @@
-﻿/**
- * UserContext — 全局用户状态
- *
- * 唯一数据源：App.jsx 挂载时执行 GET /users/me
- * 禁止页面各自重复调用
- *
- * 流程：
- * 1. 检测 localStorage token
- * 2. 存在 → 调用一次 userApi.getProfile()
- * 3. 存储 userInfo / loading / error
- * 4. 注册/登录成功 → 通过 setUser() 更新
- * 5. 退出 → 通过 clearUser() 清除
- *
- * 依赖：userApi
- */
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { userApi } from "../api/user";
 
 const UserContext = createContext(null);
 
+function decodeJwtRole(token) {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const decoded = atob(padded);
+    const claims = JSON.parse(decoded);
+    return claims?.role || null;
+  } catch {
+    return null;
+  }
+}
+
+function readStoredRole() {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem("token");
+  return decodeJwtRole(token) || localStorage.getItem("role");
+}
+
 export function UserProvider({ children, onUserReady, setUserRole }) {
   const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(!!localStorage.getItem("token"));
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const token = localStorage.getItem("token");
+    return !!token && readStoredRole() !== "admin";
+  });
   const [error, setError] = useState(null);
 
-  // 挂载时：如果有 token，请求一次用户信息
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const role = readStoredRole();
     if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    if (role === "admin") {
+      const adminUser = { role: "admin" };
+      setUserInfo(adminUser);
+      if (setUserRole) setUserRole("admin");
+      if (onUserReady) onUserReady(adminUser);
       setLoading(false);
       return;
     }
@@ -40,6 +58,7 @@ export function UserProvider({ children, onUserReady, setUserRole }) {
         setUserInfo(data);
         if (setUserRole && data.role) {
           setUserRole(data.role);
+          localStorage.setItem("role", data.role);
         }
         if (onUserReady) {
           onUserReady(data);
@@ -48,18 +67,20 @@ export function UserProvider({ children, onUserReady, setUserRole }) {
       .catch((err) => {
         console.error("[UserContext] 获取用户信息失败:", err?.message || err);
         setError(err?.message || "获取用户信息失败");
-        // token 无效时清除
         if (err?.response?.status === 401) {
           localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          setUserInfo(null);
         }
       })
       .finally(() => setLoading(false));
-  }, []); // 仅挂载执行一次
+  }, []);
 
   const setUser = useCallback((userData) => {
     setUserInfo(userData);
     if (setUserRole && userData.role) {
       setUserRole(userData.role);
+      localStorage.setItem("role", userData.role);
     }
   }, [setUserRole]);
 
@@ -67,20 +88,31 @@ export function UserProvider({ children, onUserReady, setUserRole }) {
     setUserInfo(null);
     setLoading(false);
     setError(null);
+    localStorage.removeItem("role");
   }, []);
 
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem("token");
+    const role = readStoredRole();
     if (!token) {
       clearUser();
       return null;
     }
+
+    if (role === "admin") {
+      const adminUser = { role: "admin" };
+      setUserInfo(adminUser);
+      if (setUserRole) setUserRole("admin");
+      return adminUser;
+    }
+
     setLoading(true);
     try {
       const data = await userApi.getProfile();
       setUserInfo(data);
       if (setUserRole && data.role) {
         setUserRole(data.role);
+        localStorage.setItem("role", data.role);
       }
       return data;
     } catch (err) {

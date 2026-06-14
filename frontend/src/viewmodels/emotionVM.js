@@ -49,22 +49,10 @@ export function toEmotionPayload(data) {
 export function toAiFeedbackVM(raw, emotionTag) {
   if (!raw) return null;
 
-  let comfortText = null;
-  let studyAdvice = null;
-  let relaxAdvice = null;
-
-  // 后端返回 String → 整体作为 comfortText
-  if (typeof raw.aiFeedback === 'string') {
-    comfortText = raw.aiFeedback;
-    studyAdvice = raw.studyAdvice ?? null;
-    relaxAdvice = raw.relaxAdvice ?? null;
-  }
-  // 已是对象格式
-  else if (raw.aiFeedback && typeof raw.aiFeedback === 'object') {
-    comfortText = raw.aiFeedback.comfortText ?? null;
-    studyAdvice = raw.aiFeedback.studyAdvice ?? null;
-    relaxAdvice = raw.aiFeedback.relaxAdvice ?? null;
-  }
+  const feedback = parseAiFeedback(raw.aiFeedback ?? raw);
+  const comfortText = feedback?.comfortText ?? feedback?.comfort_text ?? null;
+  const studyAdvice = feedback?.studyAdvice ?? feedback?.study_advice ?? raw.studyAdvice ?? null;
+  const relaxAdvice = feedback?.relaxAdvice ?? feedback?.relax_advice ?? raw.relaxAdvice ?? null;
 
   // 注入默认值（仅当对应字段缺失时）
   const defaultComfort = emotionTag ? (EMOTION_COMFORT_MAP[emotionTag] ?? null) : null;
@@ -74,6 +62,32 @@ export function toAiFeedbackVM(raw, emotionTag) {
     studyAdvice: studyAdvice || '建议每学习25分钟休息5分钟，劳逸结合效率更高',
     relaxAdvice: relaxAdvice || '可以听听轻音乐，或者站起来活动一下身体',
   });
+}
+
+function parseAiFeedback(value) {
+  if (!value) return null;
+
+  if (typeof value === 'object') {
+    return value;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === 'object') {
+      return parsed;
+    }
+  } catch {
+    // 兼容旧后端：纯文本反馈直接作为 comfortText 展示。
+  }
+
+  return { comfortText: trimmed };
 }
 
 /**
@@ -88,6 +102,8 @@ export function toEmotionTrendVM(raw) {
     summary: raw.summary ?? null,
     items: Array.isArray(raw.items) ? raw.items.map(item => ({
       emotionTag: item.emotionTag ?? null,
+      emotionValue: item.emotionValue ?? null,
+      count: item.count ?? 0,
       date: item.date ?? null,
     })) : [],
     emotionMap: raw.emotionMap ?? null,

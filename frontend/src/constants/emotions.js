@@ -14,6 +14,7 @@ export const EMOTION_EMOJI_MAP = Object.freeze({
   "疲惫": "😴",
   "焦虑": "😰",
   "难过": "😢",
+  "自定义": "💭",
 });
 
 // 情绪标签 → 默认分数（前端提交时使用）
@@ -25,6 +26,7 @@ export const EMOTION_SCORE_MAP = Object.freeze({
   "疲惫": 3,
   "焦虑": 2,
   "难过": 2,
+  "自定义": 5,
 });
 
 // 情绪标签 → 安慰文本（AI 反馈 fallback）
@@ -36,6 +38,7 @@ export const EMOTION_COMFORT_MAP = Object.freeze({
   "疲惫": "感觉到疲惫是正常的，说明你真的投入了。好好休息一下，恢复精力后再继续。",
   "焦虑": "感到焦虑时，试着把注意力放在呼吸上。你已经做得很好了，每一步都算数。",
   "难过": "没关系，每个人都会有低落的时候。允许自己难过一会儿，然后重新出发。",
+  "自定义": "每一种情绪都值得被接纳。感谢你今天坚持学习，也愿意记录自己的感受。",
 });
 
 // 情绪下拉选项（用于 StudyTimer 的情绪选择器）
@@ -47,6 +50,7 @@ export const EMOTION_OPTIONS = Object.freeze([
   { label: "疲惫", emoji: "😴", val: "疲惫" },
   { label: "焦虑", emoji: "😰", val: "焦虑" },
   { label: "难过", emoji: "😢", val: "难过" },
+  { label: "自定义", emoji: "💭", val: "自定义" },
 ]);
 
-export const EMOTION_LABELS = Object.freeze(["平静", "自豪", "满足", "快乐", "焦虑", "疲惫", "难过"]);
+export const EMOTION_LABELS = Object.freeze(["平静", "自豪", "满足", "快乐", "疲惫", "焦虑", "难过", "自定义"]);

@@ -2,13 +2,17 @@
 import { roomApi } from "../../api/room";
 import { toRoomDetailVM } from "../../viewmodels";
 import DuplicateSessionModal from "../../components/feedback/DuplicateSessionModal";
+import { useStudy } from "../../store/studyContext";
+import { resolveAvatarUrl, avatarFallback } from "../../utils";
 
 export default function RoomDetail({ setCurrentPage, isStudying, setIsStudying, setSelectedSeat, setSelectedSeatCode, setActiveRoomId, selectedRoomId }) {
+  const study = useStudy();
   const [detailVM, setDetailVM] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [showDup, setShowDup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     if (!selectedRoomId) {
@@ -31,18 +35,29 @@ export default function RoomDetail({ setCurrentPage, isStudying, setIsStudying, 
     setSelectedId(selectedId === seat.seatId ? null : seat.seatId);
   };
 
-  const handleStart = () => {
-    if (isStudying) {
+  const handleStart = async () => {
+    const hasActiveSession = isStudying || study.sessionStatus === "studying" || study.sessionStatus === "paused";
+    if (hasActiveSession) {
       setShowDup(true);
       return;
     }
     if (!selectedId) return;
-    setIsStudying(true);
-    setActiveRoomId(selectedRoomId);
     const chosenSeat = detailVM.seats.find(s => s.seatId === selectedId);
-    setSelectedSeat(chosenSeat?.seatId);
-    if (chosenSeat) setSelectedSeatCode(chosenSeat.seatCode);
-    setCurrentPage("study-timer");
+    if (!chosenSeat) return;
+
+    setStarting(true);
+    try {
+      await study.startStudy({ roomId: selectedRoomId, seatId: chosenSeat.seatId, mode: "normal" });
+      setIsStudying(true);
+      setActiveRoomId(selectedRoomId);
+      setSelectedSeat(chosenSeat.seatId);
+      setSelectedSeatCode(chosenSeat.seatCode);
+      setCurrentPage("study-timer");
+    } catch (err) {
+      setError(err.message || "开始学习失败");
+    } finally {
+      setStarting(false);
+    }
   };
 
 
@@ -146,7 +161,11 @@ export default function RoomDetail({ setCurrentPage, isStudying, setIsStudying, 
                     </div>
                   ) : (
                     <div className="grid grid-cols-5 gap-3">
-                      {seats.map((seat) => (
+                      {seats.map((seat) => {
+                        const occupiedName = seat.occupiedBy?.displayName || "用户";
+                        const occupiedAvatar = resolveAvatarUrl(seat.occupiedBy?.avatarUrl, occupiedName);
+
+                        return (
                         <button key={seat.seatId}
                           onClick={() => handleSeatClick(seat)}
                           disabled={seat.isOccupied}
@@ -154,13 +173,19 @@ export default function RoomDetail({ setCurrentPage, isStudying, setIsStudying, 
                           {seat.isOccupied ? (
                             <>
                               <span className="absolute top-0.5 left-1 text-[10px] text-gray-500">{seat.seatCode}</span>
-                              <img src={seat.occupiedBy?.avatarUrl || "https://picsum.photos/id/100/100/100"} alt={seat.occupiedBy?.displayName || "用户"} className="w-6 h-6 rounded-full border border-red-200 mt-2 shadow-sm" />
+                              <img
+                                src={occupiedAvatar}
+                                alt={occupiedName}
+                                className="w-6 h-6 rounded-full border border-red-200 mt-2 shadow-sm object-cover"
+                                onError={(event) => { event.currentTarget.src = avatarFallback(occupiedName); }}
+                              />
                             </>
                           ) : (
                             seat.seatCode
                           )}
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -177,11 +202,13 @@ export default function RoomDetail({ setCurrentPage, isStudying, setIsStudying, 
                   </span>
                 </div>
 
-                <button onClick={handleStart}
+                <button onClick={handleStart} disabled={!selectedId || starting}
                   className={"w-full px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 " +
-                    (selectedId ? "bg-primary text-white hover:bg-primary/90 shadow-md" : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
+                    (selectedId && !starting ? "bg-primary text-white hover:bg-primary/90 shadow-md" : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
                   <i className="fa fa-play mr-2"></i>
-                  {selectedId
+                  {starting
+                    ? "正在开始学习..."
+                    : selectedId
                     ? "锁定 " + (selectedSeat?.seatCode ?? "") + " 号座并开始学习"
                     : "请先选择一个座位"}
                 </button>
@@ -195,10 +222,15 @@ export default function RoomDetail({ setCurrentPage, isStudying, setIsStudying, 
                       {members.map((member, idx) => {
                         const isOwner = member.userId === room?.creator?.userId;
                         const memberName = member.displayName ?? "用户";
-                        const memberAvatar = member.avatarUrl || "https://picsum.photos/id/" + (100 + idx) + "/100/100";
+                        const memberAvatar = resolveAvatarUrl(member.avatarUrl, memberName);
                         return (
                           <div key={member.userId ?? idx} className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                            <img src={memberAvatar} alt={memberName} className="w-8 h-8 rounded-full mr-3 object-cover" />
+                            <img
+                              src={memberAvatar}
+                              alt={memberName}
+                              className="w-8 h-8 rounded-full mr-3 object-cover"
+                              onError={(event) => { event.currentTarget.src = avatarFallback(memberName); }}
+                            />
                             <span className="text-sm flex-1 truncate">{memberName}</span>
                             {isOwner && <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full ml-auto">房主</span>}
                           </div>

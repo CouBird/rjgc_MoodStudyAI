@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import DisabledAccountModal from "../../components/feedback/DisabledAccountModal";
 import TermsModal from "../../components/feedback/TermsModal";
 import PrivacyModal from "../../components/feedback/PrivacyModal";
@@ -47,9 +47,13 @@ export default function LoginPage({ setCurrentPage, setUserRole }) {
     setLoginLoading(true);
     authApi.login({ phone, password })
       .then((res) => {
-        const token = res?.token || res?.adminToken;
-        if (token) localStorage.setItem("token", token);
-        refreshUser();
+        const token = res?.token;
+        if (token) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("role", "user");
+        }
+        if (res?.user) setUser(res.user);
+        setUserRole("user");
         setCurrentPage("home");
       })
       .catch((err) => {
@@ -87,11 +91,15 @@ export default function LoginPage({ setCurrentPage, setUserRole }) {
     setAdminLoading(true);
     adminApi.login({ account: adminAcc, password: adminPwd })
       .then((res) => {
-        const token = res?.token || res?.adminToken;
-        if (token) localStorage.setItem("token", token);
+        const token = res?.adminToken || res?.token;
+        if (token) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("role", "admin");
+        }
+        if (res?.admin) setUser({ ...res.admin, role: "admin" });
         setUserRole("admin");
         setCurrentPage("admin");
-        })
+      })
       .catch((err) => {
         setAdminError(err?.message || "管理员登录失败");
       })

@@ -134,6 +134,22 @@ fn unique_suffix() -> String {
 async fn user_can_submit_emotion_and_query_trends_and_stats() {
     let token = register_test_user().await;
     let session_id = create_session(&token).await;
+    let ended_at = (Utc::now() + Duration::minutes(12)).to_rfc3339();
+
+    let (status, ended) = json_request(
+        test_app().await,
+        "PATCH",
+        &format!("/api/v1/study-sessions/{session_id}"),
+        json!({
+            "status": "ended",
+            "studyContent": "emotion study ended",
+            "endedAt": ended_at
+        }),
+        Some(&token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{ended}");
+    assert_eq!(ended["data"]["isValid"], true);
 
     let (status, body) = json_request(
         test_app().await,

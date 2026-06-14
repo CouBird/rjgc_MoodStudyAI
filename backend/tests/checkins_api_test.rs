@@ -251,20 +251,6 @@ async fn valid_study_session_end_updates_today_checkin() {
     let session_id = create_room_and_start_session(&token).await;
     let ended_at = (Utc::now() + Duration::minutes(12)).to_rfc3339();
 
-    let (status, emotion) = json_request(
-        test_app().await,
-        "POST",
-        &format!("/api/v1/study-sessions/{session_id}/emotion-records"),
-        json!({
-            "emotionTag": "满足",
-            "emotionScore": 8,
-            "userNote": "先记录情绪再结束学习"
-        }),
-        Some(&token),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "{emotion}");
-
     let (status, ended) = json_request(
         test_app().await,
         "PATCH",
@@ -281,6 +267,20 @@ async fn valid_study_session_end_updates_today_checkin() {
     assert_eq!(ended["data"]["isValid"], true);
     assert!(ended["data"]["durationMinutes"].as_i64().unwrap() >= 10);
 
+    let (status, emotion) = json_request(
+        test_app().await,
+        "POST",
+        &format!("/api/v1/study-sessions/{session_id}/emotion-records"),
+        json!({
+            "emotionTag": "满足",
+            "emotionScore": 8,
+            "userNote": "结束学习后记录情绪"
+        }),
+        Some(&token),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{emotion}");
+
     let today = Utc::now().date_naive().to_string();
     let (status, detail) = json_request(
         test_app().await,
@@ -296,7 +296,7 @@ async fn valid_study_session_end_updates_today_checkin() {
     assert_eq!(detail["data"]["emotionRecord"]["emotionTag"], "满足");
     assert_eq!(
         detail["data"]["emotionRecord"]["userNote"],
-        "先记录情绪再结束学习"
+        "结束学习后记录情绪"
     );
     assert!(
         detail["data"]["emotionRecord"]["aiFeedback"]

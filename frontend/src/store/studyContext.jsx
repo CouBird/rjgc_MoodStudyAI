@@ -42,6 +42,8 @@ export function StudyProvider({ children }) {
   const [sessionStatus, setSessionStatus] = useState(StudySessionStatus.IDLE);
   // idle | active | paused | completed
 
+  const [activeSession, setActiveSession] = useState(null);
+
   const [startedAt, setStartedAt] = useState(null);
 
   const [totalDuration, setTotalDuration] = useState(0);
@@ -98,63 +100,104 @@ export function StudyProvider({ children }) {
   // 
 
   useEffect(() => {
-    const saved = loadFromStorage();
-    if (!saved || !saved.sessionId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      clearSession();
       setIsChecking(false);
       return;
     }
 
-    studyApi
-      .getActiveSession()
-      .then((data) => {
-        if (data && data.sessionId) {
-          restoreSession(data);
-        } else {
-          clearSession();
-        }
-      })
-      .catch(() => {
-        // Backend unreachable, restore from local
-        if (saved) {
-          restoreSession(saved);
-        } else {
-          clearSession();
-        }
-      })
-      .finally(() => setIsChecking(false));
-  }, [sessionId]);
+    syncActiveSession().finally(() => {});
+  }, []);
 
-  function restoreSession(data) {
+  const restoreSession = useCallback((data) => {
     const id = data.sessionId ?? data.id;
     const status = data.status === StudySessionStatus.PAUSED ? StudySessionStatus.PAUSED : StudySessionStatus.STUDYING;
+    const roomId = data.roomId ?? data.room_id ?? null;
+    const roomName = data.roomName ?? data.room_name ?? null;
+    const seatId = data.seatId ?? data.seat_id ?? null;
+    const seatCode = data.seatCode ?? data.seat_code ?? null;
+    const startTime = data.startTime ?? data.start_time ?? null;
+    const durationMinutes = data.durationMinutes ?? data.duration_minutes ?? 0;
+    const mode = data.mode ?? "normal";
+    const studyContent = data.studyContent ?? data.study_content ?? null;
+
     setSessionId(id);
     setSessionStatus(status);
-    // Use startTime (backend canonical field), fallback to startTime from localStorage
-    setStartedAt(data.startTime ?? null);
-    setTimerMode(data.mode ?? "normal");
-    if (data.durationMinutes) {
-      setTotalDuration(data.durationMinutes * 60);
-    }
+    setStartedAt(startTime);
+    setTimerMode(mode);
+    setTotalDuration(durationMinutes ? durationMinutes * 60 : 0);
+    setActiveSession({
+      sessionId: id,
+      roomId,
+      roomName,
+      seatId,
+      seatCode,
+      status,
+      mode,
+      startTime,
+      durationMinutes,
+      studyContent,
+    });
     saveToStorage({
       sessionId: id,
       status: status,
-      startTime: data.startTime ?? null,
-      mode: data.mode ?? "normal",
+      roomId,
+      roomName,
+      seatId,
+      seatCode,
+      startTime,
+      durationMinutes,
+      mode,
     });
-  }
+  }, []);
 
-  function clearSession() {
+  const clearSession = useCallback(() => {
     setSessionId(null);
     setSessionStatus(StudySessionStatus.IDLE);
     setStartedAt(null);
     setTotalDuration(0);
     setTimerMode("normal");
+    setActiveSession(null);
     saveToStorage(null);
-  }
+  }, []);
+
+  const syncActiveSession = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      clearSession();
+      setIsChecking(false);
+      return null;
+    }
+
+    setIsChecking(true);
+    const saved = loadFromStorage();
+
+    try {
+      const data = await studyApi.getActiveSession();
+      if (data && data.sessionId) {
+        restoreSession(data);
+        return data;
+      }
+
+      clearSession();
+      return null;
+    } catch (error) {
+      if (saved && saved.sessionId) {
+        restoreSession(saved);
+        return saved;
+      }
+
+      clearSession();
+      return null;
+    } finally {
+      setIsChecking(false);
+    }
+  }, [clearSession, restoreSession]);
 
   // 
 
-  const startStudy = useCallback(async ({ roomId, seatId, mode } = {}) => {
+  const startStudy = useCallback(async ({ roomId, seatId, mode, studyContent } = {}) => {
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("请先登录");
@@ -170,25 +213,28 @@ export function StudyProvider({ children }) {
       seatId: seatId,
       mode: modeVal,
     };
+    const content = studyContent?.trim();
+    if (content) {
+      payload.studyContent = content;
+    }
 
     const data = await studyApi.startSession(payload);
     const id = data.sessionId ?? data.id;
 
-    setSessionId(id);
-    setSessionStatus(StudySessionStatus.STUDYING);
-    setStartedAt(data.startTime ?? new Date().toISOString());
-    setTotalDuration(0);
-    setTimerMode(modeVal);
-
-    saveToStorage({
+    lastSessionIdRef.current = null;
+    restoreSession({
+      ...data,
       sessionId: id,
-      status: StudySessionStatus.STUDYING,
-      startTime: data.startTime ?? new Date().toISOString(),
+      roomId,
+      seatId,
       mode: modeVal,
+      studyContent: content || null,
+      durationMinutes: 0,
+      status: StudySessionStatus.STUDYING,
     });
 
     return id;
-  }, []);
+  }, [restoreSession]);
 
   const pauseStudy = useCallback(async () => {
     if (!sessionId || sessionStatus !== StudySessionStatus.STUDYING) return;
@@ -198,59 +244,79 @@ export function StudyProvider({ children }) {
     });
 
     setSessionStatus(StudySessionStatus.PAUSED);
+    setActiveSession((prev) => prev ? { ...prev, status: StudySessionStatus.PAUSED } : prev);
 
     saveToStorage({
       sessionId,
       status: StudySessionStatus.PAUSED,
+      roomId: activeSession?.roomId ?? null,
+      roomName: activeSession?.roomName ?? null,
+      seatId: activeSession?.seatId ?? null,
+      seatCode: activeSession?.seatCode ?? null,
       startTime: startedAt,
+      durationMinutes: Math.floor(totalDuration / 60),
       mode: timerMode,
     });
-  }, [sessionId, sessionStatus, startedAt, timerMode]);
+  }, [sessionId, sessionStatus, startedAt, timerMode, activeSession, totalDuration]);
 
   const resumeStudy = useCallback(async () => {
     if (!sessionId || sessionStatus !== StudySessionStatus.PAUSED) return;
 
-    const now = new Date().toISOString();
     await studyApi.updateSession(sessionId, {
       status: StudySessionStatus.STUDYING,
     });
 
-    setStartedAt(now);
     setSessionStatus(StudySessionStatus.STUDYING);
+    setActiveSession((prev) => prev ? { ...prev, status: StudySessionStatus.STUDYING } : prev);
 
     saveToStorage({
       sessionId,
       status: StudySessionStatus.STUDYING,
-      startTime: now,
+      roomId: activeSession?.roomId ?? null,
+      roomName: activeSession?.roomName ?? null,
+      seatId: activeSession?.seatId ?? null,
+      seatCode: activeSession?.seatCode ?? null,
+      startTime: startedAt,
+      durationMinutes: Math.floor(totalDuration / 60),
       mode: timerMode,
     });
-  }, [sessionId, sessionStatus, timerMode]);
+  }, [sessionId, sessionStatus, timerMode, activeSession, totalDuration, startedAt]);
 
-  const endStudy = useCallback(async ({ finalDuration } = {}) => {
-    if (!sessionId || (sessionStatus !== StudySessionStatus.STUDYING && sessionStatus !== StudySessionStatus.PAUSED)) {
-      return null;
+  const endStudy = useCallback(async ({ studyContent } = {}) => {
+    if (!sessionId) {
+      throw new Error("没有正在进行的学习会话");
     }
 
-    const duration = finalDuration || totalDuration;
-    const now = new Date().toISOString();
+    if (sessionStatus !== StudySessionStatus.STUDYING && sessionStatus !== StudySessionStatus.PAUSED) {
+      throw new Error("当前学习会话状态不允许结束");
+    }
 
-    await studyApi.updateSession(sessionId, {
+    const payload = {
       status: StudySessionStatus.ENDED,
-      endedAt: now,
-    });
+    };
+    const content = studyContent?.trim();
+    if (content) {
+      payload.studyContent = content;
+    }
+
+    await studyApi.updateSession(sessionId, payload);
 
     const endedSessionId = sessionId;
     lastSessionIdRef.current = sessionId;
     clearSession();
     return endedSessionId;
-  }, [sessionId, sessionStatus, totalDuration]);
+  }, [sessionId, sessionStatus]);
 
   const submitEmotion = useCallback(
     async (data) => {
       const sid = sessionId || lastSessionIdRef.current;
-      if (!sid) return null;
+      if (!sid) {
+        throw new Error("没有可提交情绪的学习会话");
+      }
       const payload = toEmotionPayload(data);
-      if (!payload) return null;
+      if (!payload) {
+        throw new Error("情绪信息不完整");
+      }
       const raw = await emotionApi.submitEmotion(sid, payload);
       if (raw) {
         raw.aiFeedback = toAiFeedbackVM(raw, payload.emotionTag);
@@ -266,12 +332,14 @@ export function StudyProvider({ children }) {
 
 
   const resetStudy = useCallback(() => {
+    lastSessionIdRef.current = null;
     clearSession();
-  }, []);
+  }, [clearSession]);
 
   const value = {
     sessionId,
     sessionStatus,
+    activeSession,
     startedAt,
     totalDuration,
     timerMode,
@@ -281,6 +349,7 @@ export function StudyProvider({ children }) {
     resumeStudy,
     endStudy,
     submitEmotion,
+    syncActiveSession,
     sendHeartbeat: () => {
       if (sessionId && sessionStatus === StudySessionStatus.STUDYING) {
         studyApi.sendHeartbeat(sessionId).catch(() => {});

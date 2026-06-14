@@ -1,4 +1,4 @@
-﻿import React, { useState, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import Navbar from "./components/Navbar";
 import { StudyProvider } from "./store/studyContext";
 import { UserProvider } from "./store/userContext";
@@ -20,9 +20,45 @@ const LoadingFallback = () => (
   </div>
 );
 
+function decodeJwtRole(token) {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const decoded = atob(padded);
+    const claims = JSON.parse(decoded);
+    return claims?.role || null;
+  } catch {
+    return null;
+  }
+}
+
+function readInitialAuth() {
+  if (typeof window === "undefined") {
+    return { page: "login", role: "user" };
+  }
+
+  const token = localStorage.getItem("token");
+  const storedRole = localStorage.getItem("role");
+  const role = decodeJwtRole(token) || storedRole || "user";
+
+  if (token && role === "admin") {
+    return { page: "admin", role: "admin" };
+  }
+
+  if (token) {
+    return { page: "home", role: "user" };
+  }
+
+  return { page: "login", role: "user" };
+}
+
 function App() {
-  const [currentPage, setCurrentPage] = useState("login");
-  const [userRole, setUserRole] = useState("user");
+  const initialAuth = readInitialAuth();
+  const [currentPage, setCurrentPage] = useState(initialAuth.page);
+  const [userRole, setUserRole] = useState(initialAuth.role);
   const [isStudying, setIsStudying] = useState(false);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [selectedSeatCode, setSelectedSeatCode] = useState(null);
@@ -30,10 +66,14 @@ function App() {
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const hideNavbar = currentPage === "login" || currentPage === "study-timer" || currentPage === "admin";
 
-  // Token 恢复时自动跳转首页
-  const handleUserReady = () => {
+  const handleUserReady = (user) => {
+    if (user?.role) {
+      localStorage.setItem("role", user.role);
+      setUserRole(user.role);
+    }
+
     if (currentPage === "login") {
-      setCurrentPage("home");
+      setCurrentPage(user?.role === "admin" ? "admin" : "home");
     }
   };
 

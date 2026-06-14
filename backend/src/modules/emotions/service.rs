@@ -5,7 +5,7 @@ use chrono::{DateTime, Datelike, Duration, NaiveDate, Utc};
 use crate::{
     ai::feedback,
     auth::extractor::CurrentUser,
-    constants::roles,
+    constants::{roles, statuses},
     error::AppError,
     modules::{
         checkins,
@@ -27,8 +27,8 @@ const EMOTION_VALUES: [(&str, i32); 8] = [
     ("自豪", 1),
     ("满足", 2),
     ("快乐", 3),
-    ("焦虑", 4),
-    ("疲惫", 5),
+    ("疲惫", 4),
+    ("焦虑", 5),
     ("难过", 6),
     ("自定义", 7),
 ];
@@ -62,6 +62,18 @@ pub async fn create_emotion_record(
         return Err(AppError::Forbidden);
     }
 
+    if session.status != statuses::study_session::ENDED {
+        return Err(AppError::Unprocessable(
+            "学习结束后才能提交情绪记录".to_string(),
+        ));
+    }
+
+    if session.is_valid == 0 {
+        return Err(AppError::Unprocessable(
+            "有效学习结束后才能提交情绪记录".to_string(),
+        ));
+    }
+
     if repository::find_by_session(pool, session_id)
         .await?
         .is_some()
@@ -69,18 +81,30 @@ pub async fn create_emotion_record(
         return Err(AppError::Conflict("该学习会话已提交情绪记录".to_string()));
     }
 
-    let ai_feedback = feedback::generate_template_feedback(payload.emotion_tag.trim());
+    let emotion_tag = payload.emotion_tag.trim();
+    let user_note = payload
+        .user_note
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let ai_feedback = feedback::generate_emotion_feedback(
+        &state.config.ai,
+        feedback::EmotionFeedbackInput {
+            emotion_tag,
+            emotion_score: payload.emotion_score,
+            user_note,
+            study_content: session.study_content.as_deref(),
+            duration_minutes: session.duration_minutes,
+        },
+    )
+    .await;
     let row = repository::create_record(
         pool,
         repository::CreateEmotionRecord {
             session_id,
-            emotion_tag: payload.emotion_tag.trim(),
+            emotion_tag,
             emotion_score: payload.emotion_score,
-            user_note: payload
-                .user_note
-                .as_deref()
-                .map(str::trim)
-                .filter(|value| !value.is_empty()),
+            user_note,
             ai_feedback: ai_feedback.as_str(),
         },
     )
@@ -168,10 +192,10 @@ fn validate_payload(payload: &CreateEmotionRecordRequest) -> Result<(), AppError
     }
 
     if let Some(note) = &payload.user_note
-        && note.chars().count() > 1000
+        && note.chars().count() > 255
     {
         return Err(AppError::Validation(
-            "情绪备注不能超过1000个字符".to_string(),
+            "情绪备注不能超过255个字符".to_string(),
         ));
     }
 

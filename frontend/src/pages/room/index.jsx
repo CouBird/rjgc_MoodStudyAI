@@ -3,8 +3,12 @@ import { roomApi } from "../../api/room";
 import { toRoomListVM } from "../../viewmodels";
 import DuplicateSessionModal from "../../components/feedback/DuplicateSessionModal";
 import CreateRoomModal from "../../components/CreateRoomModal";
+import { resolveAvatarUrl, avatarFallback } from "../../utils";
+import { useStudy } from "../../store/studyContext";
+import { StudySessionStatus } from "../../constants/studySessionStatus";
 
 export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId }) {
+  const study = useStudy();
   const [query, setQuery] = useState("");
   const [showDup, setShowDup] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -22,6 +26,7 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
   const filtered = rooms.filter((r) =>
     r.name && r.name.toLowerCase().includes(query.toLowerCase())
   );
+  const hasActiveSession = isStudying || study.sessionStatus === StudySessionStatus.STUDYING || study.sessionStatus === StudySessionStatus.PAUSED;
 
   const handleRoomCreated = async (payload) => {
     setCreateLoading(true);
@@ -57,9 +62,13 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((room) => (
+        {filtered.map((room) => {
+          const ownerName = room.creatorName || "房主";
+          const ownerAvatar = resolveAvatarUrl(room.creatorAvatar, ownerName);
+
+          return (
           <div key={room.id} onClick={() => {
-            if (isStudying) { setShowDup(true); return; }
+            if (hasActiveSession) { setShowDup(true); return; }
             if (!room.isOpen) return;
             setSelectedRoomId(room.id); setCurrentPage("room-detail");
           }}
@@ -76,8 +85,13 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
             </div>
             <div className="p-4">
               <div className="flex items-center mb-3">
-                <img src={"https://picsum.photos/id/" + room.creatorAvatar + "/100/100"} alt="房主" className="w-8 h-8 rounded-full mr-2" />
-                <span className="text-sm text-gray-600">房主：{room.creatorName}</span>
+                <img
+                  src={ownerAvatar}
+                  alt="房主"
+                  className="w-8 h-8 rounded-full mr-2 object-cover"
+                  onError={(event) => { event.currentTarget.src = avatarFallback(ownerName); }}
+                />
+                <span className="text-sm text-gray-600">房主：{ownerName}</span>
               </div>
               <p className="text-sm text-gray-600 mb-4 line-clamp-2">{room.description}</p>
               <div className="flex justify-between items-center">
@@ -90,7 +104,8 @@ export default function RoomPage({ setCurrentPage, isStudying, setSelectedRoomId
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
       {filtered.length === 0 && !loading && (
         <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">

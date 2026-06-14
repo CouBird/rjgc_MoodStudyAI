@@ -1,6 +1,7 @@
 ﻿import React, { useState } from "react";
 import { useUserVM } from '../viewmodels';
 import { useUser } from '../store/userContext';
+import { useStudy } from '../store/studyContext';
 
 export default function Navbar({ currentPage, setCurrentPage, userRole }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -17,8 +18,12 @@ export default function Navbar({ currentPage, setCurrentPage, userRole }) {
     const displayName = userVM.displayName;
     const avatarUrl = userVM.avatarUrl;
     const { clearUser } = useUser();
+    const study = useStudy();
+    const { resetStudy } = study;
+    const hasActiveSession = study.sessionStatus === "studying" || study.sessionStatus === "paused";
 
     const handleLogout = () => {
+        resetStudy();
         localStorage.removeItem("token");
         clearUser();
         setCurrentPage("login");
@@ -43,6 +48,11 @@ export default function Navbar({ currentPage, setCurrentPage, userRole }) {
                     <button onClick={() => setCurrentPage("study-rooms")} className={getNavLinkClass("study-rooms")}>自习室</button>
                     <button onClick={() => setCurrentPage("statistics")} className={getNavLinkClass("statistics")}>学习统计</button>
                     <button onClick={() => setCurrentPage("profile")} className={getNavLinkClass("profile")}>个人中心</button>
+                    {hasActiveSession && (
+                        <button onClick={() => setCurrentPage("study-timer")} className="inline-flex items-center bg-primary text-white px-3 py-2 rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                            <i className="fa fa-clock-o mr-2"></i>回到计时
+                        </button>
+                    )}
                 </div>
 
                 {/* 头像及下拉菜单 */}
@@ -65,6 +75,11 @@ export default function Navbar({ currentPage, setCurrentPage, userRole }) {
                                 <button onClick={() => { setCurrentPage("statistics"); setDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
                                     <i className="fa fa-bar-chart mr-2 text-gray-400"></i>学习统计
                                 </button>
+                                {hasActiveSession && (
+                                    <button onClick={() => { setCurrentPage("study-timer"); setDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center">
+                                        <i className="fa fa-clock-o mr-2 text-gray-400"></i>回到计时
+                                    </button>
+                                )}
                                 <div className="border-t border-gray-200 my-1"></div>
                                 <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center">
                                     <i className="fa fa-sign-out mr-2"></i>退出登录
@@ -88,6 +103,9 @@ export default function Navbar({ currentPage, setCurrentPage, userRole }) {
                         <button onClick={() => { setCurrentPage("study-rooms"); setMobileMenuOpen(false); }} className={`block w-full text-left py-2 text-sm ${currentPage === "study-rooms" || currentPage === "room-detail" ? "text-primary font-medium" : "text-gray-600"}`}>自习室</button>
                         <button onClick={() => { setCurrentPage("statistics"); setMobileMenuOpen(false); }} className={`block w-full text-left py-2 text-sm ${currentPage === "statistics" ? "text-primary font-medium" : "text-gray-600"}`}>学习统计</button>
                         <button onClick={() => { setCurrentPage("profile"); setMobileMenuOpen(false); }} className={`block w-full text-left py-2 text-sm ${currentPage === "profile" ? "text-primary font-medium" : "text-gray-600"}`}>个人中心</button>
+                        {hasActiveSession && (
+                            <button onClick={() => { setCurrentPage("study-timer"); setMobileMenuOpen(false); }} className="block w-full text-left py-2 text-sm text-primary">回到计时</button>
+                        )}
                     </div>
                 </div>
             )}
